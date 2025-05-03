@@ -6,6 +6,7 @@ require('./db/connection');
 dotenv.config();
 
 const authRoutes = require('./routes/auth.routes');
+const gameRoutes = require('./routes/game.routes')
 
 // Создаем экземпляр приложения Express
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json()); // Для парсинга JSON тел запросов
 app.use(express.urlencoded({ extended: true })); // Для парсинга URL-encoded тел
 
 app.use('/api/auth', authRoutes);
+app.use('/api/games', gameRoutes);
 
 // Простой маршрут для корневого URL ('/')
 // Когда кто-то зайдет на http://localhost:3001/, он получит это сообщение
