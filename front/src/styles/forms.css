@@ -1,0 +1,125 @@
+/* src/styles/forms.css */
+
+/* Контейнер для центрирования формы на странице */
+.auth-page-container { /* ОБЩИЙ КЛАСС */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Высота минус высота хедера (значение берется из переменной) */
+    min-height: calc(100vh - var(--header-height));
+    padding: 40px 20px; /* Отступы для формы */
+    box-sizing: border-box;
+  }
+  
+  /* Адаптация высоты под мобильный хедер */
+  @media (max-width: 768px) {
+      .auth-page-container { /* ОБЩИЙ КЛАСС */
+          min-height: calc(100vh - var(--header-height-mobile));
+      }
+  }
+  
+  /* Обертка самой формы */
+  .auth-form-wrapper { /* ОБЩИЙ КЛАСС */
+    background-color: var(--color-bg-element-semi-transparent);
+    backdrop-filter: blur(6px);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-form);
+    border: 1px solid var(--color-border-secondary);
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  /* Заголовок формы */
+  .auth-form-wrapper h1 { /* ОБЩИЙ КЛАСС */
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: 35px;
+    font-weight: 300;
+    letter-spacing: 1.5px;
+  }
+  
+  /* Группа: метка + поле ввода */
+  .auth-input-group { /* ОБЩИЙ КЛАСС */
+    margin-bottom: 22px;
+  }
+  
+  /* Метка (label) */
+  .auth-input-group label { /* ОБЩИЙ КЛАСС */
+    display: block;
+    color: var(--color-text-secondary);
+    margin-bottom: 9px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Поле ввода */
+  .auth-input { /* ОБЩИЙ КЛАСС */
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--color-border-primary);
+    background-color: var(--color-bg-element);
+    border-radius: 5px;
+    color: var(--color-text-primary);
+    font-size: 1em;
+    font-family: var(--font-family-base);
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Плейсхолдер в поле ввода */
+  .auth-input::placeholder { /* ОБЩИЙ КЛАСС */
+    color: var(--color-text-placeholder);
+  }
+  
+  /* Стиль поля ввода при фокусе */
+  .auth-input:focus { /* ОБЩИЙ КЛАСС */
+    outline: none;
+    border-color: var(--color-accent-focus);
+    box-shadow: 0 0 0 3px var(--color-border-focus-glow);
+  }
+  
+  /* Кнопка отправки формы */
+  .auth-button { /* ОБЩИЙ КЛАСС */
+    width: 100%;
+    padding: 16px;
+    background: var(--gradient-button);
+    border: none;
+    border-radius: 5px;
+    color: var(--color-text-light);
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    margin-top: 15px;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-button);
+    font-family: var(--font-family-base);
+  }
+  
+  /* Кнопка при наведении */
+  .auth-button:hover { /* ОБЩИЙ КЛАСС */
+    background: var(--gradient-button-hover);
+    box-shadow: var(--shadow-button-hover);
+  }
+  
+  /* Кнопка при нажатии */
+  .auth-button:active { /* ОБЩИЙ КЛАСС */
+    transform: scale(0.98);
+    box-shadow: var(--shadow-button-active);
+  }
+  
+  /* Текст с предложением войти/зарегистрироваться */
+  .auth-prompt { /* ОБЩИЙ КЛАСС */
+    text-align: center;
+    margin-top: 30px;
+    color: var(--color-text-secondary);
+    font-size: 0.9em;
+  }
+  
+  /* Ссылка в тексте */
+  .auth-prompt a { /* ОБЩИЙ КЛАСС */
+    color: var(--color-text-link);
+    font-weight: bold;
+  }

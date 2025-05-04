@@ -1,8 +1,10 @@
+
 // models/user.js
 const db = require('../db/connection');
-const bcrypt = require('bcryptjs'); // For password hashing
+// const bcrypt = require('bcryptjs'); // Removed: Using hash.util.js now
+const { hashPassword, comparePassword: utilComparePassword } = require('../utils/hash.util'); // Assuming hash.util.js is in a utils directory relative to models
 
-const SALT_ROUNDS = 10; // Cost factor for bcrypt hashing
+// const SALT_ROUNDS = 10; // Removed: Cost factor managed by hash.util.js
 
 const User = {
     /**
@@ -17,10 +19,10 @@ const User = {
         return new Promise(async (resolve, reject) => {
             try {
                 if (!login || !password) {
-                    throw new Error('Login and password are required.');
+                    return reject(new Error('Login and password are required.')); // Added return for early exit
                 }
-                // Hash the password before storing
-                const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+                // Hash the password using the utility function
+                const hashedPassword = await hashPassword(password);
 
                 const sql = `INSERT INTO users (login, password, role, status) VALUES (?, ?, ?, ?)`;
                 // Note: CHECK constraints for role and status are handled by the DB schema
@@ -42,8 +44,9 @@ const User = {
                     }
                 });
             } catch (hashError) {
-                 console.error('Error hashing password:', hashError.message);
-                 reject(new Error('Failed to create user due to password hashing error.'));
+                 // Error from hashPassword utility or other async operations before db.run
+                 console.error('Error during user creation process (incl. hashing):', hashError.message);
+                 reject(new Error('Failed to create user.')); // More generic error message
             }
         });
     },
@@ -116,53 +119,56 @@ const User = {
             const allowedFields = ['login', 'password', 'role', 'status'];
             const fieldsToUpdate = [];
             const values = [];
+            let hashedPassword; // Declare here to handle potential async error
 
-            // Process password separately if present
-            if (updates.password) {
-                 if (updates.password.trim() === '') {
-                    return reject(new Error('Password cannot be empty.'));
-                 }
-                 try {
-                    const hashedPassword = await bcrypt.hash(updates.password, SALT_ROUNDS);
+            try {
+                // Process password separately if present using the utility function
+                if (updates.password) {
+                    if (updates.password.trim() === '') {
+                        return reject(new Error('Password cannot be empty.')); // Added return
+                    }
+                    hashedPassword = await hashPassword(updates.password);
                     fieldsToUpdate.push('password = ?');
                     values.push(hashedPassword);
-                 } catch(hashError) {
-                     console.error('Error hashing password during update:', hashError.message);
-                     return reject(new Error('Failed to update user due to password hashing error.'));
-                 }
-            }
-
-            // Process other allowed fields
-            for (const field of allowedFields) {
-                if (field !== 'password' && updates[field] !== undefined) {
-                    fieldsToUpdate.push(`${field} = ?`);
-                    values.push(updates[field]);
                 }
-            }
 
-            if (fieldsToUpdate.length === 0) {
-                return resolve(0); // No changes to apply
-            }
-
-            values.push(id); // Add the ID for the WHERE clause
-
-            const sql = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
-
-            db.run(sql, values, function (err) {
-                if (err) {
-                    console.error('Error updating user:', err.message);
-                     if (err.message.includes('UNIQUE constraint failed: users.login')) {
-                        reject(new Error('Login already exists.'));
-                    } else if (err.message.includes('CHECK constraint failed')) {
-                         reject(new Error('Invalid role or status value.'));
+                // Process other allowed fields
+                for (const field of allowedFields) {
+                    // Ensure we don't process password again and only include defined fields
+                    if (field !== 'password' && updates.hasOwnProperty(field)) { // Use hasOwnProperty for safety
+                        fieldsToUpdate.push(`${field} = ?`);
+                        values.push(updates[field]);
                     }
-                     else {
-                        reject(err);
-                    }
-                } else {
-                    resolve(this.changes);
                 }
-            });
+
+                if (fieldsToUpdate.length === 0) {
+                    return resolve(0); // No changes to apply
+                }
+
+                values.push(id); // Add the ID for the WHERE clause
+
+                const sql = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+
+                db.run(sql, values, function (err) {
+                    if (err) {
+                        console.error('Error updating user:', err.message);
+                        if (err.message.includes('UNIQUE constraint failed: users.login')) {
+                            reject(new Error('Login already exists.'));
+                        } else if (err.message.includes('CHECK constraint failed')) {
+                            reject(new Error('Invalid role or status value.'));
+                        }
+                        else {
+                            reject(err);
+                        }
+                    } else {
+                        resolve(this.changes);
+                    }
+                });
+            } catch (hashError) {
+                // Error from hashPassword utility or other async operations before db.run
+                console.error('Error during user update process (incl. hashing):', hashError.message);
+                reject(new Error('Failed to update user.')); // More generic error message
+            }
         });
     },
 
@@ -187,13 +193,14 @@ const User = {
     },
 
     /**
-     * Compares a plain text password with a stored hash.
+     * Compares a plain text password with a stored hash using the utility function.
      * @param {string} plainPassword - The password provided by the user.
      * @param {string} hashedPassword - The hash stored in the database.
      * @returns {Promise<boolean>} A promise that resolves with true if the passwords match, false otherwise.
      */
     comparePassword: (plainPassword, hashedPassword) => {
-        return bcrypt.compare(plainPassword, hashedPassword);
+        // Use the imported utility function directly
+        return utilComparePassword(plainPassword, hashedPassword);
     }
 };
 

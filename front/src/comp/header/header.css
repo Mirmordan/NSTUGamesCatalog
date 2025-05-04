@@ -1,0 +1,114 @@
+/* src/components/Header/header.css */
+
+.app-header {
+    /* --- Позиционирование (sticky) --- */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  
+    /* --- Внешний вид (Используем CSS Переменные) --- */
+    background-color: var(--color-bg-element-semi-transparent); /* Фон из переменных */
+    backdrop-filter: blur(8px);                                  /* Оставляем размытие */
+    box-shadow: var(--shadow-header);                            /* Тень из переменных */
+    border-bottom: 1px solid var(--color-border-secondary);      /* Рамка из переменных */
+  
+    /* --- Размеры и отступы (Используем CSS Переменные) --- */
+    height: var(--header-height); /* Высота из переменных */
+    padding: 0 30px;
+    box-sizing: border-box;
+  
+    /* --- Flexbox и Шрифт (Используем CSS Переменные) --- */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-family-base); /* Шрифт из переменных */
+  }
+  
+  /* --- Логотип --- */
+  .header-logo img {
+    height: 40px; /* Можно оставить или сделать переменной */
+    width: auto;
+    display: block;
+    transition: transform 0.2s ease-in-out;
+  }
+  .header-logo:hover img {
+    transform: scale(1.05);
+  }
+  
+  /* --- Навигация --- */
+  .header-navigation ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+  }
+  .header-navigation li {
+    margin: 0 15px;
+  }
+  .header-navigation a {
+    color: var(--color-text-primary); /* Цвет текста из переменных */
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 5px 0;
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .header-navigation a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-text-link); /* Цвет акцента/ссылки из переменных */
+    transition: width 0.3s ease;
+  }
+  .header-navigation a:hover {
+    color: var(--color-text-light); /* Цвет текста hover из переменных */
+  }
+  .header-navigation a:hover::after {
+    width: 100%;
+  }
+  
+  /* --- Иконка аккаунта и действия --- */
+  .header-actions {
+    display: flex;
+    align-items: center;
+  }
+  .header-account {
+    color: var(--color-text-primary); /* Цвет иконки из переменных */
+    font-size: 28px; /* Можно сделать переменной */
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+  }
+  .header-account:hover {
+    color: var(--color-text-light); /* Цвет hover из переменных */
+    transform: scale(1.1);
+    text-decoration: none;
+  }
+  
+  /* --- Адаптивность (Используем CSS Переменные) --- */
+  @media (max-width: 768px) {
+    .app-header {
+      padding: 0 15px;
+      height: var(--header-height-mobile); /* Адаптивная высота из переменных */
+    }
+    .header-navigation li { margin: 0 8px; }
+    .header-navigation a { font-size: 14px; }
+    .header-logo img { height: 35px; } /* Можно оставить или сделать переменной */
+    .header-account { font-size: 24px; } /* Можно оставить или сделать переменной */
+  }
+  
+  /* --- Адаптивность для маленьких экранов (опционально) --- */
+  /*
+  @media (max-width: 480px) {
+    .header-navigation {
+      display: none;
+    }
+  }
+  */

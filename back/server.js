@@ -7,6 +7,7 @@ dotenv.config();
 
 const authRoutes = require('./routes/auth.routes');
 const gameRoutes = require('./routes/game.routes');
+const userRoutes = require('./routes/user.routes');
 const reviewRoutes = require('./routes/review.routes');
 
 // Создаем экземпляр приложения Express
@@ -22,23 +23,17 @@ app.use(express.urlencoded({ extended: true })); // Для парсинга URL-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// Простой маршрут для корневого URL ('/')
-// Когда кто-то зайдет на http://localhost:3001/, он получит это сообщение
 app.get('/', (req, res) => {
-  res.send('Привет от простого Node.js сервера!');
+  res.send('Ухади');
 });
 
-// Добавляем еще один пример маршрута
-app.get('/api/message', (req, res) => {
-  res.json({ message: 'Это сообщение от API бэкенда!' });
-});
 
-// Простой обработчик ошибок (можно сделать более сложным)
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err.stack);
-  res.status(500).json({ message: 'Something went wrong on the server!' });
+  res.status(500).json({ message: 'Произошла ошибка' });
 });
 
 // Запускаем сервер и начинаем слушать указанный порт
