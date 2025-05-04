@@ -1,6 +1,7 @@
 // Импортируем Express
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
 require('./db/connection');
 dotenv.config();
@@ -21,6 +22,10 @@ app.use(cors()); // Разрешаем запросы с других домен
 app.use(express.json()); // Для парсинга JSON тел запросов
 app.use(express.urlencoded({ extended: true })); // Для парсинга URL-encoded тел
 
+const staticPath = path.join(__dirname, 'img');
+app.use('/img', express.static(staticPath));
+
+
 app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/users', userRoutes);
@@ -40,5 +45,6 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
   console.log(`Перейдите по адресу http://localhost:${PORT}/`);
+  console.log('Сервер отправляет изображения в /img из:', staticPath); 
 });
 

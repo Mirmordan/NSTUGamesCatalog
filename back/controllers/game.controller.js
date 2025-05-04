@@ -5,22 +5,25 @@ const gameController = {
     /**
      * Handles GET /api/games
      * Retrieves a list of games with pagination, search, and filtering.
+     * Note: This function does NOT add image URLs to the list view
+     * for performance reasons (avoids constructing URLs for potentially many items).
+     * The frontend can construct these if needed based on the game ID.
      */
     getGamesList: async (req, res, next) => {
         try {
             // Extract query parameters
             const {
-                page,           // page number
-                limit,          // items per page (optional, service has default)
-                search,         // search string
-                year,           // filter
-                publisher,      // filter (can be ID or name)
-                developer,      // filter (can be ID or name)
-                genre,          // filter
-                minRating,      // filter (e.g., minRating=7.5)
-                maxRating,      // filter (e.g., maxRating=9.0) - Currently only minRating supported by model
-                sortBy,         // sort field (name, year, rating)
-                sortOrder       // sort direction (ASC, DESC)
+                page,
+                limit,
+                search,
+                year,
+                publisher,
+                developer,
+                genre,
+                minRating,
+                maxRating,
+                sortBy,
+                sortOrder
             } = req.query;
 
             // Prepare options for the service
@@ -33,7 +36,7 @@ const gameController = {
                 developer,
                 genre,
                 minRating,
-                maxRating, // Pass it along, service might handle it later if model updated
+                maxRating,
                 sortBy,
                 sortOrder
             };
@@ -46,16 +49,13 @@ const gameController = {
 
         } catch (error) {
             console.error('Controller error in getGamesList:', error);
-            // Pass error to the central error handler (if configured)
-            // next(error);
-            // Or send a generic server error response
             res.status(500).json({ message: 'Error retrieving game list.' });
         }
     },
 
     /**
      * Handles GET /api/games/:id
-     * Retrieves details for a specific game.
+     * Retrieves details for a specific game, including a URL to its image.
      */
     getGameDetails: async (req, res, next) => {
         try {
@@ -74,14 +74,25 @@ const gameController = {
                 return res.status(404).json({ message: 'Game not found.' });
             }
 
-            // Send the successful response with game data
-            res.json(game);
+            // ---- START MODIFICATION ----
+            // Construct the image URL.
+            // This assumes images are named '{id}.png' and served from '/img' route.
+            // Ensure your server is configured with express.static for the 'img' folder.
+            const imageUrl = `/img/${game.id}.png`;
+
+            // Add the imageUrl to the game object being returned
+            const gameWithImage = {
+                ...game, // Spread existing game properties
+                imageUrl: imageUrl // Add the new property
+            };
+            // ---- END MODIFICATION ----
+
+
+            // Send the successful response with game data including the image URL
+            res.json(gameWithImage);
 
         } catch (error) {
             console.error(`Controller error in getGameDetails for ID ${req.params.id}:`, error);
-            // Pass error to the central error handler
-            // next(error);
-            // Or send a generic server error response
             res.status(500).json({ message: 'Error retrieving game details.' });
         }
     }

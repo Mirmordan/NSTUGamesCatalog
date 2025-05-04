@@ -1,21 +1,25 @@
-const sqlite3 = require('sqlite3').verbose(); // verbose для более подробных логов об ошибках
+// db/connection.js
+
+const sqlite3 = require('sqlite3').verbose(); 
 const dotenv = require('dotenv');
 
-dotenv.config(); // Загружаем переменные из .env
+// Загружаем путь к БД из .env
+dotenv.config(); 
+const dbPath = process.env.DATABASE_PATH || './games.sqlite'; 
 
-const dbPath = process.env.DATABASE_PATH || './games.sqlite'; // Путь к файлу БД
-
+//Инициализируем подключение
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
-        console.error('Error opening database:', err.message);
+        console.error('Ошибка открытия базы данных:', err.message);
     } else {
-        console.log('Connected to the SQLite database.');
-        // Включаем поддержку внешних ключей (важно для связей)
+        console.log('База данных подключена.');
+
+
         db.run("PRAGMA foreign_keys = ON;", function(err) {
             if (err) {
-                console.error("Failed to enable foreign keys:", err.message);
+                console.error("Ошибка подключения внешних ключей:", err.message);
             } else {
-                console.log("Foreign key support enabled.");
+                console.log("Внешние ключи работают.");
             }
         });
     }
