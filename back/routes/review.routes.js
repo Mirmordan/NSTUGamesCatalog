@@ -1,13 +1,50 @@
+// routes/review.routes.js
+
+//                                                              --- Зависимости ---
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controllers/review.controller');
-const authenticateToken = require('../middleware/authenticateToken');
-const isAdmin = require('../middleware/isAdmin');
+const authenticateToken = require('../middleware/authenticateToken'); // Middleware для проверки токена
+const isAdmin = require('../middleware/isAdmin'); // Middleware для проверки прав администратора
 
-// --- Review Moderation Routes ---
-// All routes below require admin privileges
+//                                                  --- Маршруты для отзывов конкретной игры ---
 
-// GET /api/reviews/ - Get reviews pending moderation
+// POST /api/reviews/game/:id - Отправка отзыва для игры
+// Требуется аутентификация пользователя.
+router.post(
+    '/game/:id',
+    authenticateToken,
+    reviewController.submitReview
+);
+
+// GET /api/reviews/game/:id - Получение одобренных отзывов для игры (Публичный доступ)
+router.get(
+    '/game/:id',
+    reviewController.getGameReviews
+);
+
+// GET /api/reviews/game/:id/my - Получение *своего* отзыва для игры
+// Требуется аутентификация пользователя.
+router.get(
+    '/game/:id/my',
+    authenticateToken,
+    reviewController.getOwnReview // Контроллер для получения своего отзыва
+);
+
+// PUT /api/reviews/game/:id/my - Обновление *своего* отзыва для игры
+// Требуется аутентификация пользователя.
+// При обновлении статус отзыва сбрасывается на 'review' (на рассмотрении) для повторной модерации.
+router.put(
+    '/game/:id/my',
+    authenticateToken,
+    reviewController.updateOwnReview // Контроллер для обновления своего отзыва
+);
+
+
+//                                              --- Маршруты для модерации отзывов (Только Администратор) ---
+
+// GET /api/reviews/ - Получение отзывов на модерацию
+// Требуется аутентификация и права администратора.
 router.get(
     '/',
     authenticateToken,
@@ -15,7 +52,8 @@ router.get(
     reviewController.getPendingReviews
 );
 
-// PUT /api/reviews/:id/status - Update status of a specific review
+// PUT /api/reviews/:id/status - Обновление статуса отзыва (Администратор)
+// Требуется аутентификация и права администратора.
 router.put(
     '/:id/status',
     authenticateToken,
@@ -23,7 +61,8 @@ router.put(
     reviewController.updateReviewStatus
 );
 
-// DELETE /api/reviews/:id - Delete a specific review
+// DELETE /api/reviews/:id - Удаление отзыва (Администратор)
+// Требуется аутентификация и права администратора.
 router.delete(
     '/:id',
     authenticateToken,
@@ -31,24 +70,5 @@ router.delete(
     reviewController.deleteReview
 );
 
-
-// --- IMPORTANT REMINDER ---
-// The route for SUBMITTING a review (POST /api/games/:id/review)
-// should be defined in `game.routes.js` but can call `reviewController.submitReview`.
-// Example for game.routes.js:
-/*
- const gameRouter = require('express').Router();
- const gameController = require('../controllers/game.controller');
- const reviewController = require('../controllers/review.controller'); // Import review controller
- const authenticateToken = require('../middleware/authenticateToken');
-
- // ... other game routes ...
-
- // POST /api/games/:id/review - Submit a review for a game (requires user auth)
- gameRouter.post('/:id/review', authenticateToken, reviewController.submitReview);
-
- module.exports = gameRouter;
-*/
-
-
+//                                                              --- Экспорт ---
 module.exports = router;

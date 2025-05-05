@@ -1,32 +1,33 @@
+// --- START OF FILE review.service.js ---
+
 const db = require('../db/connection');
 
-// --- Database Helper Functions (Promisified) ---
+// --- Вспомогательные функции для работы с БД (Промисифицированные) ---
+// ... (dbRun, dbGet, dbAll - без изменений) ...
 const dbRun = (sql, params = []) => new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
         if (err) {
-            console.error('DB Run Error:', err.message, 'SQL:', sql, 'Params:', params);
+            console.error('Ошибка выполнения DB Run:', err.message, 'SQL:', sql, 'Параметры:', params);
             reject(err);
         } else {
             resolve({ lastID: this.lastID, changes: this.changes });
         }
     });
 });
-
 const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
         if (err) {
-            console.error('DB Get Error:', err.message, 'SQL:', sql, 'Params:', params);
+            console.error('Ошибка выполнения DB Get:', err.message, 'SQL:', sql, 'Параметры:', params);
             reject(err);
         } else {
             resolve(row);
         }
     });
 });
-
 const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
         if (err) {
-            console.error('DB All Error:', err.message, 'SQL:', sql, 'Params:', params);
+            console.error('Ошибка выполнения DB All:', err.message, 'SQL:', sql, 'Параметры:', params);
             reject(err);
         } else {
             resolve(rows);
@@ -34,46 +35,59 @@ const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
     });
 });
 
-// --- Service Functions ---
+
+// --- Сервисные функции ---
 
 /**
- * Creates a new review. Called when a user submits a review for a game.
- * Status defaults to 'review' (На рассмотрении).
- * Note: Assumes game_id validation happens before calling this (e.g., in controller or route).
- * Note: Relies on DB triggers (defined in initDb.js) to update game rating when status becomes 'ok'.
+ * Создает новый отзыв.
+ * Статус по умолчанию 'review'.
  */
 const createReview = async (userId, gameId, rank, reviewText) => {
-    const sql = `INSERT INTO reviews (user_id, game_id, rank, review_text, status)
-                 VALUES (?, ?, ?, ?, 'review')`;
-    try {
-        // Optional: Check if user already reviewed this game, if needed
-        // const existingReview = await dbGet('SELECT id FROM reviews WHERE user_id = ? AND game_id = ?', [userId, gameId]);
-        // if (existingReview) {
-        //    throw new Error('User has already reviewed this game');
-        // }
+    // ... (логика без изменений) ...
+    const existingReview = await dbGet('SELECT id FROM reviews WHERE user_id = ? AND game_id = ?', [userId, gameId]);
+    if (existingReview) {
+       throw new Error('Пользователь уже оставил отзыв на эту игру');
+    }
 
+    if (typeof rank !== 'number' || rank < 1 || rank > 10) {
+        throw new Error('Оценка должна быть числом от 1 до 10.');
+    }
+    if (typeof reviewText !== 'string') {
+         throw new Error('Текст отзыва должен быть строкой.');
+    }
+
+    const sql = `INSERT INTO reviews (user_id, game_id, rank, review_text, status, created_at)
+                 VALUES (?, ?, ?, ?, 'review', CURRENT_TIMESTAMP)`;
+    try {
         const result = await dbRun(sql, [userId, gameId, rank, reviewText]);
         if (result.lastID) {
-             // Fetch the created review to return it (optional, good for confirmation)
-             return await dbGet('SELECT * FROM reviews WHERE id = ?', [result.lastID]);
+             return await dbGet('SELECT id, user_id, game_id, rank, review_text, status, created_at FROM reviews WHERE id = ?', [result.lastID]);
         } else {
-            throw new Error('Review could not be created.');
+            throw new Error('Отзыв не был создан.');
         }
     } catch (error) {
-        console.error(`Error creating review for user ${userId} on game ${gameId}:`, error);
-        // Re-throw specific errors if needed, otherwise a generic one
+        console.error(`Ошибка создания отзыва для пользователя ${userId} на игру ${gameId}:`, error);
         if (error.code === 'SQLITE_CONSTRAINT') {
-             throw new Error('Failed to create review due to constraint violation (e.g., invalid user or game ID).');
+             if (error.message.includes('FOREIGN KEY')) {
+                 throw new Error('Не удалось создать отзыв. Убедитесь, что игра существует и пользователь действителен.');
+             } else if (error.message.includes('CHECK constraint failed')) {
+                  // Теперь ошибка CHECK может быть и из-за статуса, если он проверяется в БД
+                 throw new Error('Данные отзыва не прошли проверку (проверьте оценку или статус).');
+             }
+        } else if (error.message === 'Пользователь уже оставил отзыв на эту игру') {
+            throw error;
         }
-        throw error; // Re-throw other errors
+        throw new Error('Не удалось создать отзыв из-за ошибки базы данных.');
     }
 };
 
+
 /**
- * Retrieves all reviews currently pending moderation (status = 'review').
- * Includes user login and game title for context.
+ * Получает все отзывы, ожидающие модерации (статус = 'review').
+ * Включает логин пользователя и название игры. (Администратор)
  */
 const findPendingReviews = async () => {
+    // ... (SQL запрос без изменений, так как ищет 'review') ...
     const sql = `
         SELECT
             r.id,
@@ -82,7 +96,7 @@ const findPendingReviews = async () => {
             r.status,
             r.created_at,
             u.login AS userLogin,
-            g.name AS gameTitle, -- <<< ИСПРАВЛЕНО ЗДЕСЬ (было g.title)
+            g.name AS gameTitle,
             r.user_id,
             r.game_id
         FROM reviews r
@@ -94,87 +108,180 @@ const findPendingReviews = async () => {
     try {
         return await dbAll(sql);
     } catch (error) {
-        console.error("Error fetching pending reviews:", error);
-        // Выбрасываем ошибку, чтобы контроллер мог ее поймать и обработать
-        throw new Error('Could not fetch pending reviews.');
+        console.error("Ошибка при получении отзывов на модерацию:", error);
+        throw new Error('Не удалось получить отзывы на модерацию.');
+    }
+};
+
+/**
+ * Получает все *одобренные* (статус = 'approved') отзывы для конкретной игры.
+ * Включает логин пользователя. (Публично)
+ */
+const findApprovedReviewsByGameId = async (gameId) => {
+    // Заменили 'ok' на 'approved' в условии WHERE
+    const sql = `
+        SELECT
+            r.id,
+            r.rank,
+            r.review_text,
+            r.created_at,
+            u.login AS userLogin,
+            r.user_id
+        FROM reviews r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.game_id = ? AND r.status = 'approved' -- ИЗМЕНЕНО ЗДЕСЬ
+        ORDER BY r.created_at DESC
+    `;
+    try {
+        const reviews = await dbAll(sql, [gameId]);
+        return reviews;
+    } catch (error) {
+        console.error(`Ошибка при получении одобренных отзывов для игры ${gameId}:`, error);
+        throw new Error('Не удалось получить отзывы для игры.');
+    }
+};
+
+/**
+ * Находит конкретный отзыв, оставленный указанным пользователем для указанной игры.
+ */
+const findUserReviewForGame = async (userId, gameId) => {
+    // ... (SQL запрос без изменений) ...
+    const sql = `
+        SELECT
+            id, user_id, game_id, rank, review_text, status, created_at
+        FROM reviews
+        WHERE user_id = ? AND game_id = ?
+    `;
+    try {
+        const review = await dbGet(sql, [userId, gameId]);
+        return review || null;
+    } catch (error) {
+        console.error(`Ошибка при поиске отзыва для пользователя ${userId} и игры ${gameId}:`, error);
+        throw new Error('Не удалось получить отзыв пользователя для игры.');
     }
 };
 
 
 /**
- * Updates the status of a specific review.
- * Allowed statuses: 'review', 'ok', 'delete' (as per tz.md, но в initDb было 'approved', 'rejected' - используем 'ok', 'delete' согласно ТЗ API).
- * Важно: ТЗ API указывает статусы review, ok, delete. initDb указывает review, approved, rejected.
- * Будем следовать ТЗ API: 'review', 'ok', 'delete'. Если триггеры настроены на 'approved', их нужно будет адаптировать или использовать 'approved' вместо 'ok'.
- * Выбираем вариант ТЗ API ('ok', 'delete').
- * Note: Relies on DB triggers to update game rating if status changes involve 'ok' (или 'approved' если триггер использует это).
+ * Обновляет собственный отзыв пользователя для конкретной игры.
+ * Сбрасывает статус на 'review'.
  */
-const updateStatus = async (reviewId, newStatus) => {
-    // Validate status against the enum defined in tz.md API section
-    const allowedStatuses = ['review', 'ok', 'delete']; // Используем статусы из ТЗ API
-    if (!allowedStatuses.includes(newStatus)) {
-        throw new Error(`Invalid status value: ${newStatus}. Must be one of ${allowedStatuses.join(', ')}.`);
-    }
+const updateUserReviewForGame = async (userId, gameId, updateData) => {
+    // ... (логика без изменений, всегда ставит 'review') ...
+    const { rank, review_text } = updateData;
 
-     // Проверка на существование отзыва перед обновлением (опционально, но полезно)
-     const reviewExists = await dbGet('SELECT id FROM reviews WHERE id = ?', [reviewId]);
-     if (!reviewExists) {
-         // Не выбрасываем ошибку, а возвращаем 0 изменений, как и делает dbRun
-         return { changes: 0 };
+     if (rank !== undefined && (typeof rank !== 'number' || rank < 1 || rank > 10)) {
+         throw new Error('Ошибка валидации обновления: Оценка должна быть числом от 1 до 10.');
+     }
+     if (review_text !== undefined && typeof review_text !== 'string') {
+         throw new Error('Ошибка валидации обновления: Текст отзыва должен быть строкой.');
      }
 
+    const existingReview = await findUserReviewForGame(userId, gameId);
+    if (!existingReview) {
+        throw new Error('Отзыв для данного пользователя и игры не найден.');
+    }
+
+    const fieldsToUpdate = [];
+    const params = [];
+
+    if (rank !== undefined) {
+        fieldsToUpdate.push('rank = ?');
+        params.push(rank);
+    }
+    if (review_text !== undefined) {
+        fieldsToUpdate.push('review_text = ?');
+        params.push(review_text);
+    }
+
+    if (fieldsToUpdate.length === 0) {
+        console.warn(`Попытка обновления отзыва (user: ${userId}, game: ${gameId}) без данных для обновления.`);
+        return existingReview;
+    }
+
+     fieldsToUpdate.push("status = 'review'");
+
+    params.push(userId);
+    params.push(gameId);
+
+    const sql = `UPDATE reviews SET ${fieldsToUpdate.join(', ')} WHERE user_id = ? AND game_id = ?`;
+
+    try {
+        const result = await dbRun(sql, params);
+        if (result.changes > 0) {
+             return await findUserReviewForGame(userId, gameId);
+        } else {
+             console.warn(`Обновление отзыва (user: ${userId}, game: ${gameId}) не привело к изменениям.`);
+             return await findUserReviewForGame(userId, gameId);
+        }
+    } catch (error) {
+        console.error(`Ошибка при обновлении отзыва для пользователя ${userId}, игра ${gameId}:`, error);
+        if (error.code === 'SQLITE_CONSTRAINT' && error.message.includes('CHECK constraint failed')) {
+             throw new Error('Обновление отзыва не удалось из-за ошибки валидации (проверьте оценку или статус).'); // Уточнили сообщение
+         }
+        throw new Error('Не удалось обновить отзыв из-за ошибки базы данных.');
+    }
+};
+
+
+/**
+ * Обновляет статус конкретного отзыва. (Администратор)
+ * Допустимые статусы: 'approved', 'rejected', 'review'.
+ */
+const updateStatus = async (reviewId, newStatus) => {
+     // Заменили 'ok' на 'approved' в списке допустимых статусов
+     const allowedStatuses = ['approved', 'rejected', 'review'];
+    if (!allowedStatuses.includes(newStatus)) {
+        // Обновили сообщение об ошибке
+        throw new Error(`Недопустимое значение статуса: ${newStatus}. Статус должен быть одним из: ${allowedStatuses.join(', ')}.`);
+    }
+
+     const reviewExists = await dbGet('SELECT id FROM reviews WHERE id = ?', [reviewId]);
+     if (!reviewExists) {
+         return { changes: 0 };
+     }
 
     const sql = `UPDATE reviews SET status = ? WHERE id = ?`;
     try {
         const result = await dbRun(sql, [newStatus, reviewId]);
-        return result; // Contains { changes: number }
+        return result;
     } catch (error) {
-        console.error(`Error updating status for review ${reviewId} to ${newStatus}:`, error);
-        throw new Error('Could not update review status.');
+        console.error(`Ошибка при обновлении статуса отзыва ${reviewId} на ${newStatus}:`, error);
+        // Добавили проверку на ошибку CHECK constraint, если БД ее вернет
+        if (error.code === 'SQLITE_CONSTRAINT' && error.message.includes('CHECK constraint failed')) {
+            throw new Error(`Не удалось обновить статус: значение '${newStatus}' не разрешено ограничением базы данных.`);
+        }
+        throw new Error('Не удалось обновить статус отзыва.');
     }
 };
 
 /**
- * Deletes a review by its ID.
- * Note: Relies on DB triggers to update game rating if the deleted review had status 'ok' (or 'approved').
+ * Удаляет отзыв по его ID. (Администратор)
  */
 const deleteById = async (reviewId) => {
-    // Optional: Check if review exists before deleting (returns { changes: 0 } if not found)
+    // ... (логика без изменений) ...
     const reviewExists = await dbGet('SELECT id FROM reviews WHERE id = ?', [reviewId]);
     if (!reviewExists) {
-        return { changes: 0 }; // Already deleted or never existed
+        return { changes: 0 };
     }
 
     const sql = `DELETE FROM reviews WHERE id = ?`;
     try {
         const result = await dbRun(sql, [reviewId]);
-        return result; // Contains { changes: number }
+        return result;
     } catch (error) {
-        console.error(`Error deleting review ${reviewId}:`, error);
-        throw new Error('Could not delete review.');
+        console.error(`Ошибка при удалении отзыва ${reviewId}:`, error);
+        throw new Error('Не удалось удалить отзыв.');
     }
 };
-
-// Helper function if triggers aren't used (Example, not currently needed if triggers work)
-/*
-const recalculateGameRating = async (gameId) => {
-    const ratingResult = await dbGet(
-        // Важно использовать правильный статус ('ok' или 'approved')
-        `SELECT COALESCE(AVG(rank), 0.0) as averageRating
-         FROM reviews
-         WHERE game_id = ? AND status = 'ok'`,
-        [gameId]
-    );
-    await dbRun('UPDATE games SET rating = ? WHERE id = ?', [ratingResult.averageRating, gameId]);
-    console.log(`Recalculated rating for game ${gameId}: ${ratingResult.averageRating}`);
-};
-*/
-
 
 module.exports = {
     createReview,
     findPendingReviews,
+    findApprovedReviewsByGameId,
+    findUserReviewForGame,
+    updateUserReviewForGame,
     updateStatus,
     deleteById,
-    // recalculateGameRating, // Export if needed
 };
+// --- END OF FILE review.service.js ---

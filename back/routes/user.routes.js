@@ -1,15 +1,15 @@
 // routes/user.routes.js
 
+//                                                          --- Зависимости ---
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
 const authenticateToken = require('../middleware/authenticateToken');
 const isAdmin = require('../middleware/isAdmin');
 
-// --- User Management Routes (Admin Only) ---
+//                                           --- Маршруты для управления пользователями (Администратор) ---
 
-// GET /api/users - Get a list of all users
-// Requires user to be logged in (authenticateToken) and be an admin (isAdmin)
+// GET /api/users - Получение списка всех пользователей
 router.get(
     '/',
     authenticateToken,
@@ -17,18 +17,13 @@ router.get(
     userController.getAllUsers
 );
 
-// PUT /api/users/:id - Update user status (e.g., block/unblock)
-// Requires user to be logged in (authenticateToken) and be an admin (isAdmin)
+// PUT /api/users/:id - Обновление статуса пользователя (active/blocked)
 router.put(
-    '/:id', // The route expects the user ID as a parameter
+    '/:id',
     authenticateToken,
     isAdmin,
     userController.updateUserStatus
 );
 
-// Note: A route for deleting a user could be added here:
-// DELETE /api/users/:id
-// router.delete('/:id', authenticateToken, isAdmin, userController.deleteUser);
-// (Requires implementing deleteUser in controller and service)
-
+//                                                          --- Экспорт ---
 module.exports = router;

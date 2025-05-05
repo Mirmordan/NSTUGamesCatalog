@@ -74,22 +74,11 @@ const gameController = {
                 return res.status(404).json({ message: 'Game not found.' });
             }
 
-            // ---- START MODIFICATION ----
-            // Construct the image URL.
-            // This assumes images are named '{id}.png' and served from '/img' route.
-            // Ensure your server is configured with express.static for the 'img' folder.
-            const imageUrl = `/img/${game.id}.png`;
-
-            // Add the imageUrl to the game object being returned
-            const gameWithImage = {
-                ...game, // Spread existing game properties
-                imageUrl: imageUrl // Add the new property
-            };
-            // ---- END MODIFICATION ----
+            
 
 
             // Send the successful response with game data including the image URL
-            res.json(gameWithImage);
+            res.json(game);
 
         } catch (error) {
             console.error(`Controller error in getGameDetails for ID ${req.params.id}:`, error);
