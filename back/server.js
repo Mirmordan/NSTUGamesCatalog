@@ -37,14 +37,14 @@ app.get('/', (req, res) => {
 
 
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.stack);
+  console.error("Необработанная ошибка:", err.stack);
   res.status(500).json({ message: 'Произошла ошибка' });
 });
 
 // Запускаем сервер и начинаем слушать указанный порт
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`Перейдите по адресу http://localhost:${PORT}/`);
+  console.log(`Полный адрес http://localhost:${PORT}/`);
   console.log('Сервер отправляет изображения в /img из:', staticPath); 
 });
 

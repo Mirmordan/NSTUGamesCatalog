@@ -1,6 +1,6 @@
 # Структура 
 - back/
-  - node_modules/ # Зависимости проекта (создается после npm install)
+  - node_modules/ # Зависимости проекта 
   - controllers/ # Контроллеры (обработка запросов, вызов сервисов)
     - auth.controller.js
     - game.controller.js
@@ -16,11 +16,11 @@
     - authenticateToken.js
     - isAdmin.js
   - models/ # Описание моделей данных
-    - Game.js
-    - User.js
-    - Review.js
-    - Publisher.js
-    - Developer.js
+    - game.js
+    - user.js
+    - review.js
+    - publisher.js
+    - developer.js
   - routes/ # Определение маршрутов API
     - auth.routes.js
     - game.routes.js
@@ -35,7 +35,7 @@
     - hash.util.js
     - jwt.util.js
   - .env # Переменные окружения (секрет, порт, путь к БД)
-  - .gitignore # Файлы, игнорируемые Git (картинки)
+  - .gitignore # Файлы, игнорируемые Git (картинки, зависимости)
   - package.json # Описание проекта и зависимостей
   - server.js # Главный файл запуска сервера
 
