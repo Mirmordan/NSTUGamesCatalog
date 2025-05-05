@@ -1,28 +1,26 @@
-// --- START OF FILE review.controller.js ---
-
+// controllers/review.controller.js
+// --- Импорты ---
 const reviewService = require('../services/review.service');
+const db = require('../db/connection'); // Импорт db нужен для dbGet
 
-// --- Вспомогательная функция dbGet ---
-const db = require('../db/connection');
+// --- Вспомогательная функция ---
+// Обертка над db.get для использования с async/await
 const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
         if (err) reject(err); else resolve(row);
     });
 });
-// ---
 
-/**
- * Обрабатывает POST /api/reviews/game/:id
- * Отправляет новый отзыв.
- */
+// --- Контроллеры (Пользователи) ---
+
+// Обрабатывает отправку нового отзыва для игры.
 const submitReview = async (req, res, next) => {
-    // ... (без изменений) ...
     const { rank, review_text } = req.body;
     const gameId = parseInt(req.params.id, 10);
     const userId = req.user.id;
 
     if (isNaN(gameId)) {
-         return res.status(400).json({ message: 'Неверный формат ID игры.' });
+        return res.status(400).json({ message: 'Неверный формат ID игры.' });
     }
     if (!rank || typeof rank !== 'number' || rank < 1 || rank > 10) {
         return res.status(400).json({ message: 'Оценка обязательна и должна быть числом от 1 до 10.' });
@@ -37,24 +35,20 @@ const submitReview = async (req, res, next) => {
     } catch (error) {
         console.error("Ошибка в контроллере submitReview:", error.message);
         if (error.message.includes('уже оставил отзыв')) {
-             return res.status(409).json({ message: error.message });
+            return res.status(409).json({ message: error.message });
         }
         if (error.message.includes('Убедитесь, что игра существует') || error.message.includes('Неверный ID пользователя или игры')) {
-             return res.status(404).json({ message: 'Не удалось отправить отзыв. Игра не найдена или пользователь недействителен.' });
+            return res.status(404).json({ message: 'Не удалось отправить отзыв. Игра не найдена или пользователь недействителен.' });
         }
-         if (error.message.includes('Не удалось создать отзыв')) {
-             return res.status(500).json({ message: 'Внутренняя ошибка сервера при отправке отзыва.' });
+        if (error.message.includes('Не удалось создать отзыв')) {
+            return res.status(500).json({ message: 'Внутренняя ошибка сервера при отправке отзыва.' });
         }
         res.status(500).json({ message: 'Произошла непредвиденная ошибка при отправке отзыва.' });
     }
 };
 
-/**
- * Обрабатывает GET /api/reviews/game/:id
- * Получает все одобренные ('approved') отзывы для игры.
- */
+// Получает все одобренные отзывы для конкретной игры.
 const getGameReviews = async (req, res, next) => {
-    // ... (без изменений, вызывает сервис, который теперь ищет 'approved') ...
     const gameId = parseInt(req.params.id, 10);
 
     if (isNaN(gameId)) {
@@ -62,7 +56,6 @@ const getGameReviews = async (req, res, next) => {
     }
 
     try {
-        // Сервис findApprovedReviewsByGameId теперь ищет статус 'approved'
         const reviews = await reviewService.findApprovedReviewsByGameId(gameId);
         res.json(reviews);
     } catch (error) {
@@ -71,12 +64,8 @@ const getGameReviews = async (req, res, next) => {
     }
 };
 
-/**
- * Обрабатывает GET /api/reviews/game/:id/my
- * Получает собственный отзыв пользователя.
- */
+// Получает собственный отзыв пользователя для конкретной игры.
 const getOwnReview = async (req, res, next) => {
-    // ... (без изменений) ...
     const gameId = parseInt(req.params.id, 10);
     const userId = req.user.id;
 
@@ -96,12 +85,8 @@ const getOwnReview = async (req, res, next) => {
     }
 };
 
-/**
- * Обрабатывает PUT /api/reviews/game/:id/my
- * Обновляет собственный отзыв пользователя. Статус сбрасывается на 'review'.
- */
+// Обновляет собственный отзыв пользователя для игры, сбрасывая статус на 'review'.
 const updateOwnReview = async (req, res, next) => {
-    // ... (без изменений, сервис ставит 'review') ...
     const gameId = parseInt(req.params.id, 10);
     const userId = req.user.id;
     const { rank, review_text } = req.body;
@@ -126,30 +111,25 @@ const updateOwnReview = async (req, res, next) => {
     try {
         const updatedReview = await reviewService.updateUserReviewForGame(userId, gameId, updateData);
         if (!updatedReview) {
-             return res.status(404).json({ message: 'Не удалось обновить отзыв. Вы еще не оставляли отзыв для этой игры или он был удален.' });
+            return res.status(404).json({ message: 'Не удалось обновить отзыв. Вы еще не оставляли отзыв для этой игры или он был удален.' });
         }
-         res.json({ message: 'Ваш отзыв был обновлен и отправлен на повторную модерацию.', review: updatedReview });
+        res.json({ message: 'Ваш отзыв был обновлен и отправлен на повторную модерацию.', review: updatedReview });
     } catch (error) {
         console.error(`Ошибка при обновлении собственного отзыва для игры ${gameId}, пользователь ${userId}:`, error);
-         if (error.message === 'Отзыв для данного пользователя и игры не найден.') {
-            return res.status(404).json({ message: 'Не удалось обновить отзыв. Отзыв не найден.' });
+        if (error.message === 'Отзыв для данного пользователя и игры не найден.') {
+           return res.status(404).json({ message: 'Не удалось обновить отзыв. Отзыв не найден.' });
         }
-         if (error.message.includes('Ошибка валидации')) {
-             return res.status(400).json({ message: error.message });
-         }
-        res.status(500).json({ message: 'Внутренняя ошибка сервера при обновлении вашего отзыва.' });
+        if (error.message.includes('Ошибка валидации')) {
+            return res.status(400).json({ message: error.message });
+        }
+       res.status(500).json({ message: 'Внутренняя ошибка сервера при обновлении вашего отзыва.' });
     }
 };
 
+// --- Контроллеры (Модерация) ---
 
-// --- Функции для модерации (Только Администратор) ---
-
-/**
- * Обрабатывает GET /api/reviews/
- * Получает отзывы на модерацию ('review').
- */
+// Получает все отзывы, ожидающие модерации (статус 'review').
 const getPendingReviews = async (req, res, next) => {
-    // ... (без изменений) ...
     try {
         const reviews = await reviewService.findPendingReviews();
         res.json(reviews);
@@ -159,10 +139,7 @@ const getPendingReviews = async (req, res, next) => {
     }
 };
 
-/**
- * Обрабатывает PUT /api/reviews/:id/status
- * Обновляет статус отзыва. Допустимые значения: 'approved', 'rejected', 'review'.
- */
+// Обновляет статус отзыва (только модератор).
 const updateReviewStatus = async (req, res, next) => {
     const reviewId = parseInt(req.params.id, 10);
     const { status } = req.body;
@@ -170,47 +147,38 @@ const updateReviewStatus = async (req, res, next) => {
     if (isNaN(reviewId)) {
         return res.status(400).json({ message: 'Неверный формат ID отзыва.' });
     }
-    // Заменили 'ok' на 'approved' в списке допустимых статусов и сообщении
     const allowedStatuses = ['approved', 'rejected', 'review'];
     if (!status || !allowedStatuses.includes(status)) {
-         return res.status(400).json({ message: `Требуется новый статус, и он должен быть одним из: ${allowedStatuses.join(', ')}.` });
+        return res.status(400).json({ message: `Требуется новый статус, и он должен быть одним из: ${allowedStatuses.join(', ')}.` });
     }
-
 
     try {
         const result = await reviewService.updateStatus(reviewId, status);
 
         if (result.changes === 0) {
-             const exists = await dbGet('SELECT 1 FROM reviews WHERE id = ?', [reviewId]);
-             if (!exists) {
-                 return res.status(404).json({ message: `Отзыв с ID ${reviewId} не найден.` });
-             } else {
-                  // Обновили сообщение для случая, когда статус не изменился
-                  res.json({ message: `Статус отзыва ${reviewId} уже установлен на '${status}' или изменение не требуется.` });
-             }
+            const exists = await dbGet('SELECT 1 FROM reviews WHERE id = ?', [reviewId]);
+            if (!exists) {
+                return res.status(404).json({ message: `Отзыв с ID ${reviewId} не найден.` });
+            } else {
+                 res.json({ message: `Статус отзыва ${reviewId} уже установлен на '${status}' или изменение не требуется.` });
+            }
         } else {
-            // Обновили сообщение об успехе
-            res.json({ message: `Статус отзыва ${reviewId} обновлен на '${status}'.` });
+           res.json({ message: `Статус отзыва ${reviewId} обновлен на '${status}'.` });
         }
     } catch (error) {
         console.error("Ошибка в контроллере updateReviewStatus:", error);
-        // Обновили проверку сообщения об ошибке из сервиса
         if (error.message.startsWith('Недопустимое значение статуса') || error.message.includes('не разрешено ограничением базы данных')) {
-             return res.status(400).json({ message: error.message });
+            return res.status(400).json({ message: error.message });
         }
         res.status(500).json({ message: 'Внутренняя ошибка сервера при обновлении статуса отзыва.' });
     }
 };
 
-/**
- * Обрабатывает DELETE /api/reviews/:id
- * Удаляет отзыв.
- */
+// Удаляет отзыв по ID (только модератор).
 const deleteReview = async (req, res, next) => {
-    // ... (без изменений) ...
     const reviewId = parseInt(req.params.id, 10);
 
-     if (isNaN(reviewId)) {
+    if (isNaN(reviewId)) {
         return res.status(400).json({ message: 'Неверный формат ID отзыва.' });
     }
 
@@ -219,14 +187,14 @@ const deleteReview = async (req, res, next) => {
         if (result.changes === 0) {
             return res.status(404).json({ message: `Отзыв с ID ${reviewId} не найден.` });
         }
-         res.json({ message: `Отзыв ${reviewId} успешно удален.` });
+        res.json({ message: `Отзыв ${reviewId} успешно удален.` });
     } catch (error) {
         console.error("Ошибка в контроллере deleteReview:", error);
         res.status(500).json({ message: 'Внутренняя ошибка сервера при удалении отзыва.' });
     }
 };
 
-
+// --- Экспорт ---
 module.exports = {
     submitReview,
     getGameReviews,
@@ -236,4 +204,3 @@ module.exports = {
     updateReviewStatus,
     deleteReview,
 };
-// --- END OF FILE review.controller.js ---

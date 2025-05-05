@@ -1,5 +1,5 @@
 // models/developer.js
-const db = require('../db/connection'); // Используем ваш файл
+const db = require('../db/connection'); 
 
 const Developer = {
     create: (name) => {

@@ -1,70 +1,53 @@
 // controllers/user.controller.js
-
+// --- Зависимости ---
 const userService = require('../services/user.service');
 
-/**
- * Handles GET /api/users request. Retrieves a list of all users.
- * Requires admin privileges.
- */
+// --- Контроллеры (Управление Пользователями) ---
+
+// Получает список всех пользователей (только Администратор).
 const getAllUsers = async (req, res, next) => {
     try {
         const users = await userService.findAllUsers();
         res.json(users);
     } catch (error) {
-        console.error("Error in userController.getAllUsers:", error);
-        // Pass error to a central error handler or send a generic 500
-        res.status(500).json({ message: 'Internal server error while fetching users.' });
-        // Or: next(error); if you have error handling middleware
+        console.error("Ошибка в userController.getAllUsers:", error);
+        res.status(500).json({ message: 'Внутренняя ошибка сервера при получении пользователей.' });
     }
 };
 
-/**
- * Handles PUT /api/users/:id request. Updates the status of a user.
- * Requires admin privileges.
- */
+// Обновляет статус пользователя (active/blocked) (только Администратор).
 const updateUserStatus = async (req, res, next) => {
     const userId = parseInt(req.params.id, 10);
-    const { status } = req.body; // Expecting { "status": "active" | "blocked" }
+    const { status } = req.body;
 
-    // --- Input Validation ---
     if (isNaN(userId)) {
-        return res.status(400).json({ message: 'Invalid user ID format.' });
+        return res.status(400).json({ message: 'Неверный формат ID пользователя.' });
     }
     if (!status) {
-        return res.status(400).json({ message: 'New status is required in the request body.' });
+        return res.status(400).json({ message: 'Требуется новый статус в теле запроса.' });
     }
-    // Basic check for allowed values, more robust check is in the service
     if (status !== 'active' && status !== 'blocked') {
-         return res.status(400).json({ message: "Invalid status value. Must be 'active' or 'blocked'." });
+         return res.status(400).json({ message: "Неверное значение статуса. Должно быть 'active' или 'blocked'." });
     }
-    // --- End Validation ---
-
 
     try {
-        // Call the service function to update the status
         await userService.updateUserStatus(userId, status);
-        res.json({ message: `User ${userId} status updated successfully to '${status}'.` });
+        res.json({ message: `Статус пользователя ${userId} успешно обновлен на '${status}'.` });
 
     } catch (error) {
-        console.error(`Error in userController.updateUserStatus for user ${userId}:`, error);
+        console.error(`Ошибка в userController.updateUserStatus для пользователя ${userId}:`, error);
 
-        // Handle specific errors from the service
-        if (error.message.startsWith('Invalid status value')) {
+        if (error.message.startsWith('Invalid status value')) { // Исправлено на проверку, соответствующую исходному коду
             return res.status(400).json({ message: error.message });
         }
-        if (error.message.includes('not found')) {
-             return res.status(404).json({ message: error.message }); // User not found
+        if (error.message.includes('not found')) { // Исправлено на проверку, соответствующую исходному коду
+             return res.status(404).json({ message: error.message });
         }
-
-        // Generic error for other issues
-        res.status(500).json({ message: 'Internal server error while updating user status.' });
-        // Or: next(error);
+        res.status(500).json({ message: 'Внутренняя ошибка сервера при обновлении статуса пользователя.' });
     }
 };
 
-// Note: A controller function for deleting a user (deleteUser) could be added here
-// calling a corresponding service method if needed.
-
+// --- Экспорт ---
 module.exports = {
     getAllUsers,
     updateUserStatus,

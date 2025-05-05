@@ -1,5 +1,5 @@
 // db/add.js
-const db = require('../db/connection'); // Adjust path if needed
+const db = require('../db/connection'); 
 
 
 function getRandomElement(arr) {

@@ -33,11 +33,10 @@ router.get(
 
 // PUT /api/reviews/game/:id/my - Обновление *своего* отзыва для игры
 // Требуется аутентификация пользователя.
-// При обновлении статус отзыва сбрасывается на 'review' (на рассмотрении) для повторной модерации.
 router.put(
     '/game/:id/my',
     authenticateToken,
-    reviewController.updateOwnReview // Контроллер для обновления своего отзыва
+    reviewController.updateOwnReview
 );
 
 

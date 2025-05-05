@@ -1,9 +1,9 @@
-// --- START OF FILE initDb.js ---
+
 
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./games.sqlite'); // Путь к файлу БД
+const db = new sqlite3.Database('./games.sqlite'); 
 
-function initDb(callback) { // Add callback for completion
+function initDb(callback) { 
     db.serialize(() => {
         // Создание таблицы издателей
         db.run(`
@@ -25,7 +25,6 @@ function initDb(callback) { // Add callback for completion
             if (err) console.error('Error creating developers:', err);
         });
 
-        // --- ИЗМЕНЕНО: убран image_url, убран CHECK для genre ---
         // Создание таблицы игр
         db.run(`
       CREATE TABLE IF NOT EXISTS games (
@@ -45,7 +44,6 @@ function initDb(callback) { // Add callback for completion
     `, (err) => {
             if (err) console.error('Error creating games:', err);
         });
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
         // Создание таблицы пользователей (CHECK оставлены)
         db.run(`
@@ -60,7 +58,6 @@ function initDb(callback) { // Add callback for completion
             if (err) console.error('Error creating users:', err);
         });
 
-        // --- ИЗМЕНЕНО: убран CHECK для status ---
         // Создание таблицы отзывов
         db.run(`
       CREATE TABLE IF NOT EXISTS reviews (
@@ -83,12 +80,10 @@ function initDb(callback) { // Add callback for completion
                  callback();
             }
         });
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
     });
 }
 
-// Триггеры для автоматического пересчета рейтинга игры (без изменений)
-// Логика триггеров все еще корректна, она опирается на значение 'approved'
+// Триггеры для автоматического пересчета рейтинга игры 
 const createRatingUpdateTriggers = (callback) => {
     let triggersCreated = 0;
     const totalTriggers = 3;
@@ -164,7 +159,6 @@ const createRatingUpdateTriggers = (callback) => {
     });
 };
 
-// --- Execution ---
 
 console.log("Initializing database schema...");
 initDb(() => {
@@ -180,5 +174,3 @@ initDb(() => {
         console.log('Database initialization and trigger creation complete.');
     });
 });
-
-// --- END OF FILE initDb.js ---
