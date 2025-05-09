@@ -1,258 +1,217 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import './search.css'; // Импорт стилей для SearchPage
+import './search.css'; // Убедитесь, что это правильный путь к вашему CSS (search.css)
 
 const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL;
-const PLACEHOLDER_IMG_SRC = '/placeholder-game-cover.png';
+const PLACEHOLDER_IMG_SRC = '/placeholder.png';
 
 const StarRating = ({ rating }) => {
     if (rating === null || rating === undefined || rating <= 0) {
         return <span className="no-rating">Нет рейтинга</span>;
     }
-    return (
-        <>
-            <i className="fas fa-star"></i> {parseFloat(rating).toFixed(1)}
-        </>
-    );
+    return <><i className="fas fa-star"></i> {parseFloat(rating).toFixed(1)}</>;
 };
 
 const GameItemCard = React.memo(({ game }) => {
     const [imgSrc, setImgSrc] = useState(`${API_BASE_URL}/api/img/${game.id}.png`);
-    
-    useEffect(() => {
-        setImgSrc(`${API_BASE_URL}/api/img/${game.id}.png`);
-    }, [game.id]);
-
+    useEffect(() => { setImgSrc(`${API_BASE_URL}/api/img/${game.id}.png`); }, [game.id]);
     const handleImageError = () => setImgSrc(PLACEHOLDER_IMG_SRC);
-
     return (
         <Link to={`/games/${game.id}`} className="game-card">
             <div className="game-card-image-container">
-                <img 
-                    src={imgSrc} 
-                    alt={game.name}
-                    className="game-card-image" 
-                    onError={handleImageError} 
-                />
+                <img src={imgSrc} alt={game.name} className="game-card-image" onError={handleImageError} />
             </div>
             <div className="game-card-info">
                 <h3 className="game-card-title">{game.name}</h3>
                 {game.year && <p className="game-card-year">{game.year}</p>}
-                <div className="game-card-rating">
-                    <StarRating rating={game.rating} />
-                </div>
+                <div className="game-card-rating"><StarRating rating={game.rating} /></div>
             </div>
         </Link>
     );
 });
 
+const CollapsibleCheckboxFilter = ({ title, options, selectedOptions, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const handleCheckboxChange = (optionValue) => {
+        const newSelectedOptions = selectedOptions.includes(optionValue)
+            ? selectedOptions.filter(item => item !== optionValue)
+            : [...selectedOptions, optionValue];
+        onChange(newSelectedOptions);
+    };
+    return (
+        <div className="filter-group collapsible-filter">
+            <button type="button" className="collapsible-header" onClick={() => setIsOpen(!isOpen)}>
+                {title}
+                <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`}></i>
+            </button>
+            {isOpen && (
+                <div className="collapsible-content">
+                    {options.map(option => (
+                        <label key={option.value} className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                value={option.value}
+                                checked={selectedOptions.includes(option.value)}
+                                onChange={() => handleCheckboxChange(option.value)}
+                            />
+                            {option.label}
+                        </label>
+                    ))}
+                    {options.length === 0 && <p className="no-options-message">Нет доступных опций</p>}
+                </div>
+            )}
+        </div>
+    );
+};
+
 function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [activeMainSearchTerm, setActiveMainSearchTerm] = useState(searchParams.get('search') || '');
-    const [activeFilterYear, setActiveFilterYear] = useState(searchParams.get('year') || '');
-    const [activeFilterGenre, setActiveFilterGenre] = useState(searchParams.get('genre') || '');
-    const [activeFilterPublisher, setActiveFilterPublisher] = useState(searchParams.get('publisher') || '');
-    const [activeFilterDeveloper, setActiveFilterDeveloper] = useState(searchParams.get('developer') || '');
-    const [activeFilterMinRating, setActiveFilterMinRating] = useState(searchParams.get('minRating') || '');
-    const [activeSortBy, setActiveSortBy] = useState(searchParams.get('sortBy') || 'g.name');
-    const [activeSortOrder, setActiveSortOrder] = useState(searchParams.get('sortOrder') || 'ASC');
-    const [activePage, setActivePage] = useState(parseInt(searchParams.get('page')) || 1);
+    // Временные состояния для инпутов (то, что пользователь вводит/выбирает)
+    // Они будут инициализироваться и обновляться из searchParams
+    const [tempMainSearchTerm, setTempMainSearchTerm] = useState(searchParams.get('search') || '');
+    const [tempFilterGenres, setTempFilterGenres] = useState(searchParams.getAll('genre') || []);
+    const [tempFilterPlatforms, setTempFilterPlatforms] = useState(searchParams.getAll('platform') || []);
+    const [tempFilterPublisher, setTempFilterPublisher] = useState(searchParams.get('publisher') || '');
+    const [tempFilterDeveloper, setTempFilterDeveloper] = useState(searchParams.get('developer') || '');
+    const [tempMinRating, setTempMinRating] = useState(searchParams.get('minRating') || '0');
+    const [tempMaxRating, setTempMaxRating] = useState(searchParams.get('maxRating') || '10');
+    const [tempSortBy, setTempSortBy] = useState(searchParams.get('sortBy') || 'g.name');
+    const [tempSortOrder, setTempSortOrder] = useState(searchParams.get('sortOrder') || 'ASC');
 
-    const [tempMainSearchTerm, setTempMainSearchTerm] = useState(activeMainSearchTerm);
-    const [tempFilterYear, setTempFilterYear] = useState(activeFilterYear);
-    const [tempFilterGenre, setTempFilterGenre] = useState(activeFilterGenre);
-    const [tempFilterPublisher, setTempFilterPublisher] = useState(activeFilterPublisher);
-    const [tempFilterDeveloper, setTempFilterDeveloper] = useState(activeFilterDeveloper);
-    const [tempFilterMinRating, setTempFilterMinRating] = useState(activeFilterMinRating);
-    const [tempSortBy, setTempSortBy] = useState(activeSortBy);
-    const [tempSortOrder, setTempSortOrder] = useState(activeSortOrder);
-
+    // Состояния для данных, загрузки и ошибок
     const [games, setGames] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [totalPages, setTotalPages] = useState(0);
     const [totalGames, setTotalGames] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1); // Текущая страница, обновляется из ответа API
+
+    // Списки для чекбоксов
+    const [availableGenres, setAvailableGenres] = useState([]);
+    const [availablePlatforms, setAvailablePlatforms] = useState([]);
     const itemsPerPage = 12;
 
-    const fetchGames = useCallback(async (pageToFetch) => {
-        setIsLoading(true);
-        setError('');
-
-        const queryParams = new URLSearchParams();
-        queryParams.append('page', pageToFetch.toString());
-        queryParams.append('limit', itemsPerPage.toString());
-
-        if (activeMainSearchTerm) queryParams.append('search', activeMainSearchTerm);
-        if (activeFilterYear) queryParams.append('year', activeFilterYear);
-        if (activeFilterGenre) queryParams.append('genre', activeFilterGenre);
-        if (activeFilterPublisher) queryParams.append('publisher', activeFilterPublisher);
-        if (activeFilterDeveloper) queryParams.append('developer', activeFilterDeveloper);
-        if (activeFilterMinRating) queryParams.append('minRating', activeFilterMinRating);
-        if (activeSortBy) queryParams.append('sortBy', activeSortBy);
-        if (activeSortOrder) queryParams.append('sortOrder', activeSortOrder);
-        
-        const currentSearchParamsString = new URLSearchParams(searchParams).toString();
-        const nextQueryParamsString = queryParams.toString();
-
-        // Обновляем URL только если параметры действительно изменились (исключая сам page для этого сравнения)
-        // или если это первая загрузка и searchParams еще не установлены корректно.
-        const stripPage = (str) => str.replace(/&?page=\d+/, '').replace(/^page=\d+&?/, '');
-        if (stripPage(nextQueryParamsString) !== stripPage(currentSearchParamsString) || pageToFetch.toString() !== searchParams.get('page')) {
-           setSearchParams(queryParams, { replace: true });
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/games?${queryParams.toString()}`);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Ошибка загрузки игр: ${response.status}`);
-            }
-            const data = await response.json();
-            setGames(data.games || []);
-            setTotalGames(data.totalGames || 0);
-            setTotalPages(data.totalPages || 0);
-            setActivePage(data.currentPage || 1);
-        } catch (err) {
-            console.error("Error fetching games:", err);
-            setError(err.message);
-            setGames([]);
-            setTotalGames(0);
-            setTotalPages(0);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [ 
-        activeMainSearchTerm, activeFilterYear, activeFilterGenre, activeFilterPublisher,
-        activeFilterDeveloper, activeFilterMinRating, activeSortBy, activeSortOrder, 
-        itemsPerPage, setSearchParams, searchParams // searchParams для сравнения
-    ]);
-
+    // Эффект для синхронизации временных состояний (инпутов) с URL
+    // Это важно, если URL меняется извне (например, кнопки браузера "назад/вперед")
     useEffect(() => {
-        const pageFromUrl = parseInt(searchParams.get('page')) || 1;
-        const searchFromUrl = searchParams.get('search') || '';
-        const yearFromUrl = searchParams.get('year') || '';
-        const genreFromUrl = searchParams.get('genre') || '';
-        const publisherFromUrl = searchParams.get('publisher') || '';
-        const developerFromUrl = searchParams.get('developer') || '';
-        const minRatingFromUrl = searchParams.get('minRating') || '';
-        const sortByFromUrl = searchParams.get('sortBy') || 'g.name';
-        const sortOrderFromUrl = searchParams.get('sortOrder') || 'ASC';
-
-        setActiveMainSearchTerm(searchFromUrl);
-        setActiveFilterYear(yearFromUrl);
-        setActiveFilterGenre(genreFromUrl);
-        setActiveFilterPublisher(publisherFromUrl);
-        setActiveFilterDeveloper(developerFromUrl);
-        setActiveFilterMinRating(minRatingFromUrl);
-        setActiveSortBy(sortByFromUrl);
-        setActiveSortOrder(sortOrderFromUrl);
-        setActivePage(pageFromUrl);
-
-        setTempMainSearchTerm(searchFromUrl);
-        setTempFilterYear(yearFromUrl);
-        setTempFilterGenre(genreFromUrl);
-        setTempFilterPublisher(publisherFromUrl);
-        setTempFilterDeveloper(developerFromUrl);
-        setTempFilterMinRating(minRatingFromUrl);
-        setTempSortBy(sortByFromUrl);
-        setTempSortOrder(sortOrderFromUrl);
+        setTempMainSearchTerm(searchParams.get('search') || '');
+        setTempFilterGenres(searchParams.getAll('genre') || []);
+        setTempFilterPlatforms(searchParams.getAll('platform') || []);
+        setTempFilterPublisher(searchParams.get('publisher') || '');
+        setTempFilterDeveloper(searchParams.get('developer') || '');
+        setTempMinRating(searchParams.get('minRating') || '0');
+        setTempMaxRating(searchParams.get('maxRating') || '10');
+        setTempSortBy(searchParams.get('sortBy') || 'g.name');
+        setTempSortOrder(searchParams.get('sortOrder') || 'ASC');
     }, [searchParams]);
 
+    // Загрузка данных при изменении searchParams (включая страницу)
     useEffect(() => {
-        fetchGames(activePage);
-    }, [
-        activeMainSearchTerm, activeFilterYear, activeFilterGenre, activeFilterPublisher,
-        activeFilterDeveloper, activeFilterMinRating, activeSortBy, activeSortOrder,
-        activePage, fetchGames
-    ]);
+        const fetchGamesData = async () => {
+            setIsLoading(true);
+            setError('');
+
+            // Формируем queryParams напрямую из searchParams для запроса
+            const query = new URLSearchParams(searchParams);
+            if (!query.has('page')) query.set('page', '1'); // Устанавливаем страницу по умолчанию, если нет
+            query.set('limit', itemsPerPage.toString());
+
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/games?${query.toString()}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Ошибка загрузки игр: ${response.status}`);
+                }
+                const data = await response.json();
+                setGames(data.games || []);
+                setTotalGames(data.totalGames || 0);
+                setTotalPages(data.totalPages || 0);
+                setCurrentPage(data.currentPage || 1);
+            } catch (err) {
+                console.error("Error fetching games:", err);
+                setError(err.message);
+                setGames([]);
+                setTotalGames(0);
+                setTotalPages(0);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchGamesData();
+
+        // Загрузка опций для фильтров (один раз при монтировании)
+        // Это можно вынести в отдельный useEffect с пустым массивом зависимостей, если они не меняются
+        const fetchFilterOptions = async () => {
+             setAvailableGenres([
+                { value: 'Action', label: 'Экшн' }, { value: 'RPG', label: 'RPG' },
+                { value: 'Strategy', label: 'Стратегия' }, { value: 'Shooter', label: 'Шутер' },
+                { value: 'Adventure', label: 'Приключение' }, { value: 'Simulator', label: 'Симулятор' },
+                { value: 'Fighting', label: 'Файтинг'}, { value: 'Stealth', label: 'Стелс'}
+            ]);
+            setAvailablePlatforms([
+                { value: 'PC', label: 'ПК' }, { value: 'PlayStation 5', label: 'PlayStation 5' },
+                { value: 'Xbox Series X/S', label: 'Xbox Series X/S' }, { value: 'Nintendo Switch', label: 'Nintendo Switch' }
+            ]);
+        };
+        if (availableGenres.length === 0) { // Загружаем только если еще не загружены
+            fetchFilterOptions();
+        }
+
+    }, [searchParams, itemsPerPage]); // Зависим от searchParams
 
     const handlePageChange = (newPage) => {
-        if (newPage >= 1 && newPage <= totalPages && newPage !== activePage) {
-            setActivePage(newPage);
+        if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+            const newQueryParams = new URLSearchParams(searchParams);
+            newQueryParams.set('page', newPage.toString());
+            setSearchParams(newQueryParams, { replace: true });
         }
     };
     
-    const handleInputChange = (setter) => (e) => {
-        setter(e.target.value);
-    };
-
+    const handleInputChange = (setter) => (e) => setter(e.target.value);
+    const handleCheckboxGroupChange = (setter) => (newSelectedValues) => setter(newSelectedValues);
+    
     const applyAllFilters = () => {
-        setActiveMainSearchTerm(tempMainSearchTerm);
-        setActiveFilterYear(tempFilterYear);
-        setActiveFilterGenre(tempFilterGenre);
-        setActiveFilterPublisher(tempFilterPublisher);
-        setActiveFilterDeveloper(tempFilterDeveloper);
-        setActiveFilterMinRating(tempFilterMinRating);
-        setActiveSortBy(tempSortBy);
-        setActiveSortOrder(tempSortOrder);
+        const newQueryParams = new URLSearchParams();
+        // Собираем параметры из temp* состояний
+        if (tempMainSearchTerm) newQueryParams.set('search', tempMainSearchTerm);
+        tempFilterGenres.forEach(g => newQueryParams.append('genre', g));
+        tempFilterPlatforms.forEach(p => newQueryParams.append('platform', p));
+        if (tempFilterPublisher) newQueryParams.set('publisher', tempFilterPublisher);
+        if (tempFilterDeveloper) newQueryParams.set('developer', tempFilterDeveloper);
+        if (tempMinRating && tempMinRating !== "0") newQueryParams.set('minRating', tempMinRating);
+        if (tempMaxRating && tempMaxRating !== "10") newQueryParams.set('maxRating', tempMaxRating);
+        if (tempSortBy && tempSortBy !== 'g.name') newQueryParams.set('sortBy', tempSortBy);
+        if (tempSortOrder && tempSortOrder !== 'ASC') newQueryParams.set('sortOrder', tempSortOrder);
+        newQueryParams.set('page', '1'); // Всегда сбрасываем на первую страницу
         
-        // Если активная страница не 1, сбрасываем ее. Это вызовет useEffect для загрузки.
-        // Если уже 1, нужно будет явно вызвать fetchGames или убедиться, что другие active состояния изменились.
-        if (activePage !== 1) {
-            setActivePage(1);
-        } else {
-            // Если страница уже первая, но другие фильтры изменились,
-            // а fetchGames зависит от active... состояний, то он вызовется.
-            // Однако, чтобы гарантировать обновление URL, сделаем это здесь.
-            const newQueryParams = new URLSearchParams();
-            if (tempMainSearchTerm) newQueryParams.set('search', tempMainSearchTerm);
-            if (tempFilterYear) newQueryParams.set('year', tempFilterYear);
-            // ... (добавить все temp фильтры)
-            if (tempFilterGenre) newQueryParams.set('genre', tempFilterGenre);
-            if (tempFilterPublisher) newQueryParams.set('publisher', tempFilterPublisher);
-            if (tempFilterDeveloper) newQueryParams.set('developer', tempFilterDeveloper);
-            if (tempFilterMinRating) newQueryParams.set('minRating', tempFilterMinRating);
-            if (tempSortBy && tempSortBy !== 'g.name') newQueryParams.set('sortBy', tempSortBy);
-            if (tempSortOrder && tempSortOrder !== 'ASC') newQueryParams.set('sortOrder', tempSortOrder);
-            newQueryParams.set('page', '1');
-            setSearchParams(newQueryParams, { replace: true });
-            // Если useEffect для activePage=1 не сработает из-за того, что activePage не изменился,
-            // а другие active* состояния уже были такими же, как temp*, то fetchGames не вызовется.
-            // В таком случае, можно либо добавить в зависимости fetchGames searchParams,
-            // либо здесь явно вызвать fetchGames(1), если другие active* не изменились.
-            // Текущая логика с useEffect должна сработать, так как active* состояния обновляются перед этим.
-        }
+        setSearchParams(newQueryParams, { replace: true });
     };
     
     const handleMainSearchEnter = (e) => {
-        if (e.key === 'Enter') {
-            applyAllFilters();
-        }
+        if (e.key === 'Enter') applyAllFilters();
     };
 
     const resetAllFilters = () => {
+        // Сбрасываем временные состояния (инпуты)
         setTempMainSearchTerm('');
-        setTempFilterYear('');
-        setTempFilterGenre('');
+        setTempFilterGenres([]);
+        setTempFilterPlatforms([]);
         setTempFilterPublisher('');
         setTempFilterDeveloper('');
-        setTempFilterMinRating('');
+        setTempMinRating('0');
+        setTempMaxRating('10');
         setTempSortBy('g.name');
         setTempSortOrder('ASC');
         
-        setActiveMainSearchTerm('');
-        setActiveFilterYear('');
-        setActiveFilterGenre('');
-        setActiveFilterPublisher('');
-        setActiveFilterDeveloper('');
-        setActiveFilterMinRating('');
-        setActiveSortBy('g.name');
-        setActiveSortOrder('ASC');
-        
-        if (activePage !== 1) {
-            setActivePage(1);
-        } else {
-            // Если уже на первой странице, нужно обновить URL и, возможно, вызвать fetch
-            setSearchParams({ page: '1' }, { replace: true });
-             // Если active состояния не изменились, fetchGames не вызовется сам по себе
-             // Можно вызвать fetchGames(1) явно, если уверены, что это нужно
-             // Однако, так как active* состояния сбрасываются, useEffect [active*, activePage, fetchGames] должен сработать.
-        }
+        // Обновляем URL только страницей 1 (остальные параметры удалятся)
+        setSearchParams({ page: '1' }, { replace: true });
     };
 
     return (
-        <div className="games-list-page-container"> {/* Используем класс из CSS */}
+        <div className="games-list-page-container">
             <h1 className="page-title">Поиск игр</h1>
             <div className="games-list-layout">
                 <div className="games-main-content">
@@ -265,7 +224,6 @@ function SearchPage() {
                             placeholder="Поиск по названию или описанию..."
                         />
                     </div>
-
                     {isLoading ? (
                         <div className="games-list-loader">Загрузка игр...</div>
                     ) : error ? (
@@ -278,11 +236,11 @@ function SearchPage() {
                             </div>
                             {totalPages > 1 && (
                                 <div className="pagination-container">
-                                    <button onClick={() => handlePageChange(activePage - 1)} disabled={activePage === 1}>
+                                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
                                         « Назад
                                     </button>
-                                    <span>Страница <span className="current-page">{activePage}</span> из {totalPages}</span>
-                                    <button onClick={() => handlePageChange(activePage + 1)} disabled={activePage === totalPages}>
+                                    <span>Страница <span className="current-page">{currentPage}</span> из {totalPages}</span>
+                                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
                                         Вперед »
                                     </button>
                                 </div>
@@ -296,34 +254,52 @@ function SearchPage() {
                 <aside className="filters-sidebar">
                     <h2>Фильтры</h2>
                     <form onSubmit={(e) => { e.preventDefault(); applyAllFilters(); }}>
+                        <CollapsibleCheckboxFilter
+                            title="Жанры"
+                            options={availableGenres}
+                            selectedOptions={tempFilterGenres}
+                            onChange={handleCheckboxGroupChange(setTempFilterGenres)}
+                        />
+                        <CollapsibleCheckboxFilter
+                            title="Платформы"
+                            options={availablePlatforms}
+                            selectedOptions={tempFilterPlatforms}
+                            onChange={handleCheckboxGroupChange(setTempFilterPlatforms)}
+                        />
                         <div className="filter-group">
-                            <label htmlFor="year">Год выхода:</label>
-                            <input type="number" id="year" value={tempFilterYear} onChange={handleInputChange(setTempFilterYear)} placeholder="Напр. 2023" />
+                            <label htmlFor="publisher">Издатель (название):</label>
+                            <input type="text" id="publisher" value={tempFilterPublisher} onChange={handleInputChange(setTempFilterPublisher)} placeholder="Название издателя" />
                         </div>
                         <div className="filter-group">
-                            <label htmlFor="genre">Жанр:</label>
-                            <input type="text" id="genre" value={tempFilterGenre} onChange={handleInputChange(setTempFilterGenre)} placeholder="Напр. RPG" />
+                            <label htmlFor="developer">Разработчик (название):</label>
+                            <input type="text" id="developer" value={tempFilterDeveloper} onChange={handleInputChange(setTempFilterDeveloper)} placeholder="Название разработчика" />
                         </div>
-                        <div className="filter-group">
-                            <label htmlFor="publisher">Издатель:</label>
-                            <input type="text" id="publisher" value={tempFilterPublisher} onChange={handleInputChange(setTempFilterPublisher)} placeholder="Имя или ID" />
-                        </div>
-                        <div className="filter-group">
-                            <label htmlFor="developer">Разработчик:</label>
-                            <input type="text" id="developer" value={tempFilterDeveloper} onChange={handleInputChange(setTempFilterDeveloper)} placeholder="Имя или ID" />
-                        </div>
-                        <div className="filter-group">
-                            <label htmlFor="minRating">Мин. рейтинг (0-10):</label>
-                            <input type="number" id="minRating" value={tempFilterMinRating} onChange={handleInputChange(setTempFilterMinRating)} placeholder="Напр. 7.5" step="0.1" min="0" max="10" />
+                        <div className="filter-group range-filter">
+                            <label>Рейтинг:</label>
+                            <div className="range-slider-labels">
+                                <span>От: {tempMinRating}</span>
+                                <span>До: {tempMaxRating}</span>
+                            </div>
+                            <input 
+                                type="range" id="minRating" min="0" max="10" step="0.5" value={tempMinRating} 
+                                onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (val <= parseFloat(tempMaxRating)) setTempMinRating(e.target.value);
+                                }}
+                            />
+                            <input 
+                                type="range" id="maxRating" min="0" max="10" step="0.5" value={tempMaxRating} 
+                                onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (val >= parseFloat(tempMinRating)) setTempMaxRating(e.target.value);
+                                }} 
+                            />
                         </div>
                         <div className="filter-group">
                             <label htmlFor="sortBy">Сортировать по:</label>
                             <select id="sortBy" value={tempSortBy} onChange={handleInputChange(setTempSortBy)}>
                                 <option value="g.name">Названию</option>
-                                <option value="g.year">Году</option>
                                 <option value="g.rating">Рейтингу</option>
-                                <option value="publisher_name">Издателю</option>
-                                <option value="developer_name">Разработчику</option>
                             </select>
                         </div>
                         <div className="filter-group">
