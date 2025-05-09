@@ -5,11 +5,13 @@ import ProtectedRoute from './protectedRoute';
 import PublicRoute from './publicRoute';
 
 // --- Импорт компонентов страниц ---
-import LoginPage from '../pages/login/login'; // <--- ИМПОРТИРУЕМ СТРАНИЦУ ЛОГИНА
-import RegisterPage from '../pages/join/join'; // <--- ИМПОРТИРУЕМ СТРАНИЦУ ЛОГИНА
+import LoginPage from '../pages/login/login';
+import RegisterPage from '../pages/join/join';
+import GamePage from '../pages/game/game'; // <-- Путь к вашей GamePage, убедитесь, что он верный
+import SearchPage from '../pages/search/search';
 
 // Placeholder компоненты для других страниц (замените на ваши реальные компоненты)
-const HomePage = () => <div>Главная страница</div>;
+const HomePage = () => <div>Главная страница</div>; // Замените на ваш компонент HomePage
 const ProfilePage = () => <div>Страница профиля пользователя</div>;
 const DashboardPage = () => <div>Панель пользователя (защищено)</div>;
 const AdminPanelPage = () => <div>Панель администратора (защищено, только админ)</div>;
@@ -21,29 +23,37 @@ const AppRouter = () => {
     return (
         <Routes>
             {/* --- Полностью публичные маршруты --- */}
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<HomePage />} /> {/* Или <GamesListPage /> если это ваша главная */}
+            <Route path="/games/:gameId" element={<GamePage />} /> {/* <--- ДОБАВЛЕН МАРШРУТ ДЛЯ СТРАНИЦЫ ИГРЫ */}
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            {/* <Route path="/game/:id" element={<GameDetailsPage />} /> */}
+            <Route path="/games" element={<SearchPage/>}/>
 
 
             {/* --- "Публичные-ограниченные" маршруты (логин, регистрация) --- */}
-            <Route element={<PublicRoute restricted redirectTo="/dashboard" />}> {/* или redirectTo="/profile" */}
-                <Route path="/login" element={<LoginPage />} /> {/* <--- ИСПОЛЬЗУЕМ LoginPage ЗДЕСЬ */}
+            {/* Эти маршруты доступны только неаутентифицированным пользователям. */}
+            {/* Если пользователь аутентифицирован, его перенаправит на redirectTo. */}
+            <Route element={<PublicRoute restricted redirectTo="/profile" />}> {/* или redirectTo="/dashboard" */}
+                <Route path="/login" element={<LoginPage />} />
                 <Route path="/join" element={<RegisterPage />} />
             </Route>
 
             {/* --- Защищенные маршруты (требуют аутентификации) --- */}
+            {/* Доступны только аутентифицированным пользователям. */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                {/* Другие маршруты, требующие только аутентификации, можно добавить сюда */}
             </Route>
 
             {/* --- Защищенные маршруты для администраторов --- */}
+            {/* Доступны только аутентифицированным пользователям с ролью 'admin'. */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="/admin" element={<AdminPanelPage />} />
+                {/* Другие маршруты только для админа */}
             </Route>
 
             {/* --- Маршрут "Не найдено" (404) --- */}
+            {/* Этот маршрут должен быть последним */}
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );

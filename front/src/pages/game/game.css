@@ -1,0 +1,304 @@
+/* src/pages/GamePage/GamePage.css */
+
+.game-page-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    color: var(--color-text-primary);
+}
+
+.game-page-loader,
+.game-page-error-message {
+    text-align: center;
+    font-size: 1.2em;
+    padding: 40px;
+    margin: 20px auto;
+    background-color: var(--color-bg-element);
+    border-radius: 8px;
+    border: 1px solid var(--color-border-primary);
+}
+.game-page-error-message {
+    color: var(--color-accent-primary);
+    text-shadow: 0 0 5px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.7);
+}
+
+.game-details-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 40px;
+    background-color: var(--color-bg-element-semi-transparent);
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-secondary);
+    box-shadow: var(--shadow-form);
+}
+
+.game-cover-container {
+    flex: 1 1 300px;
+    max-width: 350px;
+    min-width: 250px;
+}
+
+.game-cover-image {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--color-border-primary);
+    background-color: var(--color-bg-dark-secondary);
+    display: block;
+}
+
+.game-info-container {
+    flex: 2 1 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-info-container h1 {
+    font-size: 2.2em;
+    color: var(--color-text-light);
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+.game-info-container .game-year {
+    font-size: 1.1em;
+    color: var(--color-text-secondary);
+    margin-left: 10px;
+}
+
+/* --- Стили для отображения рейтинга звездами --- */
+.star-rating-display { /* Общий контейнер для звезд */
+    display: flex;
+    align-items: center;
+    font-size: 1.3em; /* Размер текста рядом со звездами */
+    font-weight: bold;
+    color: var(--color-accent-focus);
+}
+
+.star-rating-display .stars-container { /* Контейнер для самих иконок звезд */
+    display: flex;
+    margin-right: 8px; /* Отступ от числового значения рейтинга */
+}
+
+.star-rating-display .star-icon {
+    font-size: 1.1em; /* Размер звезд чуть больше текста */
+    margin-right: 2px; /* Небольшой отступ между звездами */
+    color: #ccc; /* Цвет для пустой звезды по умолчанию */
+}
+
+.star-rating-display .star-icon.filled {
+    color: #ffd700; /* Золотой цвет для заполненной звезды */
+}
+.star-rating-display .star-icon.half-filled { /* Для полузакрашенной звезды (опционально) */
+    position: relative;
+    color: #ccc; /* Фон - пустая звезда */
+}
+.star-rating-display .star-icon.half-filled::before {
+    content: '\f089'; /* Код иконки полузвезды или полной звезды */
+    font-family: 'Font Awesome 5 Free'; /* или 'Font Awesome 5 Solid' */
+    font-weight: 900; /* Для solid иконок */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%; /* Половина ширины */
+    overflow: hidden;
+    color: #ffd700; /* Цвет заполненной части */
+}
+
+
+.star-rating-display .rating-value { /* Числовое значение рейтинга */
+    margin-left: 5px;
+}
+.star-rating-display .no-rating {
+    font-size: 0.9em;
+    font-weight: normal;
+    color: var(--color-text-secondary);
+}
+/* ----------------------------------------------- */
+
+.game-info-item {
+    font-size: 1em;
+    line-height: 1.5;
+}
+.game-info-item strong {
+    color: var(--color-text-secondary);
+    margin-right: 8px;
+    font-weight: 600;
+}
+.game-info-item span, .game-info-item a {
+    color: var(--color-text-primary);
+}
+.game-info-item a:hover {
+    color: var(--color-text-link);
+    text-decoration: underline;
+}
+
+.game-description {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: var(--color-bg-element);
+    border-radius: 6px;
+    border: 1px solid var(--color-border-primary);
+    line-height: 1.7;
+    color: var(--color-text-primary);
+    font-size: 0.95em;
+}
+
+.reviews-section {
+    margin-top: 30px;
+}
+.reviews-section h2 {
+    font-size: 1.8em;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border-secondary);
+    padding-bottom: 10px;
+}
+
+.review-action-buttons button {
+    margin-bottom: 20px;
+}
+
+.review-form-container {
+    padding: 25px;
+    max-width: 700px;
+    margin-bottom: 30px;
+}
+.review-form-container .auth-input-group label {
+    font-size: 0.95em;
+}
+.review-form-container .rating-input {
+    width: 100px;
+}
+/* --- Стили для звезд в форме отзыва --- */
+.review-form-stars {
+    display: flex;
+    margin-bottom: 10px;
+}
+.review-form-stars .star-icon {
+    font-size: 1.8em; /* Крупнее для кликабельности */
+    color: #ccc;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: color 0.2s;
+}
+.review-form-stars .star-icon:hover,
+.review-form-stars .star-icon.selected,
+.review-form-stars:hover .star-icon.hover-selected { /* Для эффекта при наведении на контейнер */
+    color: #ffd700;
+}
+/* ------------------------------------ */
+
+.review-form-container .form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.reviews-list {
+    list-style: none;
+    padding: 0;
+}
+.no-reviews-message {
+    color: var(--color-text-secondary);
+    padding: 20px;
+    text-align: center;
+    background-color: var(--color-bg-element);
+    border-radius: 6px;
+}
+
+.review-item {
+    background-color: var(--color-bg-element);
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid var(--color-border-primary);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.review-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.review-item-user {
+    font-weight: 600;
+    color: var(--color-text-link);
+    font-size: 1.05em;
+}
+.review-item-rating-stars { /* Контейнер для звезд в отзыве */
+    display: flex;
+    align-items: center;
+}
+.review-item-rating-stars .star-icon { /* Стили звезд в отзыве */
+    font-size: 0.9em; /* Меньше, чем в общем рейтинге */
+    margin-right: 1px;
+    color: #ccc;
+}
+.review-item-rating-stars .star-icon.filled {
+    color: #ffd700;
+}
+.review-item-rating-stars .rating-value-text { /* Текст (X/10) рядом со звездами в отзыве */
+    font-size: 0.9em;
+    margin-left: 5px;
+    color: var(--color-text-secondary);
+    font-weight: normal;
+}
+
+.review-item-date {
+    font-size: 0.85em;
+    color: var(--color-text-secondary);
+    margin-top: 3px;
+    width: 100%;
+    text-align: left;
+}
+.review-item-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.review-item-text {
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    font-size: 0.95em;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .game-details-layout {
+        flex-direction: column;
+    }
+    .game-cover-container {
+        max-width: 100%;
+        margin: 0 auto 20px auto;
+    }
+    .game-info-container h1 {
+        font-size: 1.8em;
+    }
+    .star-rating-display { /* Адаптация общего рейтинга */
+        font-size: 1.1em;
+    }
+    .star-rating-display .star-icon {
+        font-size: 1em;
+    }
+    .review-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .review-item-header-right {
+        align-items: flex-start;
+        text-align: left;
+        margin-top: 5px;
+    }
+    .review-item-date {
+        width: auto;
+    }
+}
