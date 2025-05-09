@@ -1,96 +1,159 @@
-// src/pages/LoginPage.js (или где у вас форма входа)
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext'; // Убедитесь, что путь верный
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/authContext';
+import '../../styles/forms.css';
 
-function LoginPage() {
-    // --- Состояние для полей формы ---
-    // !!! ВАЖНО: Используйте 'loginInput' (или как у вас называется поле)
-    // вместо 'email', так как бэкенд ожидает 'login'
+const MESSAGE_VISIBLE_DURATION_MS = 2000; // 2 секунды на видимость сообщения
+const ANIMATION_DURATION_MS = 300; // Длительность CSS анимации opacity
+
+const LoginPage = () => {
     const [loginInput, setLoginInput] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // --- Получаем данные из контекста и хуки навигации ---
-    const { login, authError, isLoading, isAuthenticated } = useAuth();
+    const { login: authLogin, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const from = location.state?.from?.pathname || "/dashboard";
 
-    // --- Определяем, куда перенаправить после успешного входа ---
-    // Пытаемся взять путь из state.from (куда перенаправил ProtectedRoute)
-    // Если его нет (зашли напрямую на /login), то по умолчанию идем в /profile
-    const fromPath = location.state?.from?.pathname || "/profile";
+    // Единое состояние для сообщения (текст и тип)
+    const [message, setMessage] = useState({ text: '', type: '' }); // type: 'error' | 'success'
+    const [isMessageVisible, setIsMessageVisible] = useState(false);
 
-    // --- Если пользователь уже авторизован, не показываем страницу входа ---
+    const messageTimerRef = useRef(null);
+
+    // Очистка таймера при размонтировании
     useEffect(() => {
-        if (isAuthenticated) {
-            console.log('Пользователь уже авторизован, перенаправление с /login на', fromPath);
-            navigate(fromPath, { replace: true });
-        }
-    }, [isAuthenticated, navigate, fromPath]);
+        return () => {
+            if (messageTimerRef.current) clearTimeout(messageTimerRef.current);
+        };
+    }, []);
 
-    // --- Обработчик отправки формы ---
+    // Эффект для управления видимостью сообщения
+    useEffect(() => {
+        if (message.text) {
+            setIsMessageVisible(true); // Показываем (запускаем анимацию появления)
+
+            // Если уже есть таймер, очищаем его
+            if (messageTimerRef.current) {
+                clearTimeout(messageTimerRef.current);
+            }
+
+            // Таймер на скрытие сообщения
+            messageTimerRef.current = setTimeout(() => {
+                setIsMessageVisible(false); // Скрываем (запускаем анимацию исчезновения)
+                // Даем время на анимацию исчезновения перед очисткой текста
+                // и редиректом (для success)
+                setTimeout(() => {
+                    if (message.type === 'success') {
+                        navigate(from, { replace: true });
+                    }
+                    setMessage({ text: '', type: '' }); // Очищаем сообщение после анимации
+                }, ANIMATION_DURATION_MS);
+            }, MESSAGE_VISIBLE_DURATION_MS);
+        } else {
+            // Если текст сообщения пуст, убеждаемся, что оно скрыто
+            setIsMessageVisible(false);
+        }
+    }, [message, navigate, from]);
+
+
+    useEffect(() => {
+        // Редирект, если аутентифицирован и нет активного сообщения об успехе
+        if (isAuthenticated && message.type !== 'success') {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, from, message.type]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Перед новым запросом - очищаем предыдущее сообщение немедленно, если нужно
+        if (messageTimerRef.current) clearTimeout(messageTimerRef.current);
+        setMessage({ text: '', type: '' }); // Это скроет сообщение без анимации, если оно было
+        setIsMessageVisible(false);         // Убедимся, что оно скрыто
+
+        setIsLoading(true);
+
         if (!loginInput || !password) {
-            // Можно добавить локальную валидацию здесь, но контекст тоже проверяет
-            console.warn('Логин или пароль не введены');
+            setMessage({ text: 'Логин и пароль обязательны.', type: 'error' });
+            setIsLoading(false);
             return;
         }
 
-        // Вызываем функцию login из контекста, передавая объект { login, password }
-        const result = await login({ login: loginInput, password: password });
-
-        // Если вход успешен (функция login вернула { success: true })
-        if (result.success) {
-            console.log('Успешный вход! Перенаправление на:', fromPath);
-            // Выполняем перенаправление
-            navigate(fromPath, { replace: true }); // replace: true убирает /login из истории
+        try {
+            const result = await authLogin({ login: loginInput, password });
+            if (result.success) {
+                setMessage({ text: 'Вход выполнен успешно! Перенаправление...', type: 'success' });
+                // setIsLoading(false) не здесь, т.к. будет редирект
+            } else {
+                setMessage({ text: result.error || 'Ошибка входа. Проверьте данные.', type: 'error' });
+                setIsLoading(false);
+            }
+        } catch (err) {
+            console.error("Login page submit error:", err);
+            setMessage({ text: 'Непредвиденная ошибка на странице.', type: 'error' });
+            setIsLoading(false);
         }
-        // Если была ошибка, она будет в authError и отобразится ниже
     };
 
-    // Не рендерим форму, если пользователь УЖЕ авторизован (пока идет редирект из useEffect)
-    if (isAuthenticated) {
-        return <div>Перенаправление...</div>;
-    }
-
     return (
-        <div>
-            <h2>Вход</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    {/* !!! ИСПОЛЬЗУЙТЕ id="login" и name="login" если нужно */}
-                    <label htmlFor="loginInput">Логин:</label>
-                    <input
-                        type="text" // Используйте text, email не подходит для поля 'login'
-                        id="loginInput"
-                        value={loginInput}
-                        onChange={(e) => setLoginInput(e.target.value)}
-                        required
-                        autoComplete="username" // Помогает браузеру
-                    />
+        <div className="auth-page-container">
+            <div className="auth-form-wrapper">
+                <h1>Вход в систему</h1>
+
+                {/* Блок для сообщений - всегда в DOM, управляется видимостью */}
+                <div className="auth-message-placeholder">
+                    <p
+                        className={`
+                            auth-message
+                            ${message.type === 'error' ? 'auth-error-message' : ''}
+                            ${message.type === 'success' ? 'auth-success-message' : ''}
+                            ${isMessageVisible ? 'visible' : ''}
+                        `}
+                    >
+                        {/* Используем   чтобы зарезервировать высоту, если текста нет, но элемент видим */}
+                        {message.text || ''}
+                    </p>
                 </div>
-                <div>
-                    <label htmlFor="password">Пароль:</label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="current-password" // Помогает браузеру
-                    />
-                </div>
-                {/* Отображаем ошибку, если она есть */}
-                {authError && <p style={{ color: 'red' }}>{authError}</p>}
-                <button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Вход...' : 'Войти'}
-                </button>
-            </form>
-            {/* Можно добавить ссылку на регистрацию */}
-            {/* <p>Нет аккаунта? <Link to="/join">Зарегистрироваться</Link></p> */}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="auth-input-group">
+                        <label htmlFor="login">Логин</label>
+                        <input
+                            type="text"
+                            id="login"
+                            className="auth-input"
+                            value={loginInput}
+                            onChange={(e) => setLoginInput(e.target.value)}
+                            placeholder="Введите ваш логин"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="auth-input-group">
+                        <label htmlFor="password">Пароль</label>
+                        <input
+                            type="password"
+                            id="password"
+                            className="auth-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Введите ваш пароль"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <button type="submit" className="auth-button" disabled={isLoading}>
+                        {isLoading ? (message.type === 'success' ? 'Перенаправление...' : 'Вход...') : 'Войти'}
+                    </button>
+                </form>
+                <p className="auth-prompt">
+                    Нет аккаунта? <Link to="/join" className={isLoading ? 'disabled-link' : ''}>Зарегистрироваться</Link>
+                </p>
+            </div>
         </div>
     );
-}
+};
 
 export default LoginPage;

@@ -23,7 +23,7 @@ app.use(express.json()); // Для парсинга JSON тел запросов
 app.use(express.urlencoded({ extended: true })); // Для парсинга URL-encoded тел
 
 const staticPath = path.join(__dirname, 'img');
-app.use('/img', express.static(staticPath));
+app.use('/api/img', express.static(staticPath));
 
 
 app.use('/api/auth', authRoutes);

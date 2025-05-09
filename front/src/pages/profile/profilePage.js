@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.js
 import React from 'react';
-import { useAuth } from '../context/AuthContext'; // Путь к вашему контексту
+import { useAuth } from '../context/authContext'; // Путь к вашему контексту
 import UserProfileCard from '../components/UserProfileCard'; // Путь к вашей карточке
 import './ProfilePage.css'; // Подключаем стили
 
@@ -31,7 +31,7 @@ function ProfilePage() {
         status: user.status,  // Статус есть
         role: user.role,      // Роль есть
 
-        // --- Поля, которых НЕТ в user из AuthContext (нужны заглушки или доп. запрос) ---
+        // --- Поля, которых НЕТ в user из authContext (нужны заглушки или доп. запрос) ---
         avatarUrl: 'https://via.placeholder.com/100/777/fff?text=?', // Заглушка
         fullName: null, // Или user.login, если имя = логин
         joinedDate: 'Неизвестно',

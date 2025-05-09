@@ -1,170 +1,196 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './join.css'; // Убедитесь, что путь правильный
+// src/pages/join/join.js
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import './join.css';
 
-// Получаем базовый URL API из переменных окружения
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const MESSAGE_VISIBLE_DURATION_MS = 3000;
+const ANIMATION_DURATION_MS = 300;
 
-function JoinPage() {
-  // --- Состояния для полей формы, ошибок и сообщений ---
-  const [login, setLogin] = useState(''); // Используем 'login' вместо 'email'
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState(''); // Для ошибок
-  const [successMessage, setSuccessMessage] = useState(''); // Для сообщения об успехе
-  const [loading, setLoading] = useState(false); // Для состояния загрузки
+const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL;
 
-  const navigate = useNavigate(); // Для редиректа после успеха
+if (!API_BASE_URL && process.env.NODE_ENV !== 'test') {
+    console.warn(
+        "Переменная окружения REACT_APP_API_SERVER_URL не установлена. " +
+        "API-запросы могут работать некорректно или использовать относительные пути."
+    );
+}
 
-  const handleRegister = async (event) => {
-    event.preventDefault(); // Предотвращаем стандартную отправку
-    setError(''); // Сбрасываем ошибки
-    setSuccessMessage(''); // Сбрасываем сообщения об успехе
-    setLoading(true); // Начинаем загрузку
+const RegisterPage = () => {
+    const [loginInput, setLoginInput] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' });
+    const [isMessageVisible, setIsMessageVisible] = useState(false);
+    const messageTimerRef = useRef(null);
 
-    // --- 1. Клиентская валидация ---
-    if (password !== confirmPassword) {
-      setError('Пароли не совпадают!');
-      setLoading(false);
-      return; // Прерываем отправку
-    }
-    if (password.length < 6) { // Пример минимальной длины
-        setError('Пароль должен быть не менее 6 символов.');
-        setLoading(false);
-        return;
-    }
-    // Добавьте другие проверки при необходимости (например, сложность пароля)
+    useEffect(() => {
+        return () => {
+            if (messageTimerRef.current) {
+                clearTimeout(messageTimerRef.current);
+            }
+        };
+    }, []);
 
-    // --- 2. Проверка URL API ---
-    if (!API_BASE_URL) {
-        setError("Ошибка конфигурации: не найден URL API. Проверьте файл .env и перезапустите сервер.");
-        setLoading(false);
-        return;
-    }
+    useEffect(() => {
+        if (message.text) {
+            setIsMessageVisible(true);
 
-    console.log('Попытка регистрации с данными:', { login, password: '***' }); // Не логгируем пароль
-    console.log('Целевой API:', `${API_BASE_URL}/api/auth/join`);
+            if (messageTimerRef.current) {
+                clearTimeout(messageTimerRef.current);
+            }
 
-    try {
-        // --- 3. Отправка запроса на бэкенд ---
-        const response = await fetch(`${API_BASE_URL}/api/auth/join`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // Отправляем только 'login' и 'password', как ожидает бэкенд
-            body: JSON.stringify({ login: login, password: password }),
-        });
-
-        const data = await response.json(); // Получаем ответ
-
-        if (response.ok) { // Статус 201 Created считается ok
-            console.log('Успешная регистрация (ответ сервера):', data);
-            setSuccessMessage(data.message || 'Регистрация прошла успешно! Теперь вы можете войти.');
-            // Очистка формы после успеха (опционально)
-            setLogin('');
-            setPassword('');
-            setConfirmPassword('');
-            // Можно добавить небольшой таймаут перед редиректом, чтобы пользователь увидел сообщение
-            setTimeout(() => {
-                navigate('/login'); // Перенаправляем на страницу входа
-            }, 2000); // Задержка 2 секунды
-
+            messageTimerRef.current = setTimeout(() => {
+                setIsMessageVisible(false);
+                setTimeout(() => {
+                    setMessage({ text: '', type: '' });
+                }, ANIMATION_DURATION_MS);
+            }, MESSAGE_VISIBLE_DURATION_MS);
         } else {
-            // Ошибка от сервера (400, 409, 500 и т.д.)
-            console.error('Ошибка регистрации (ответ сервера):', data);
-            setError(data.message || 'Произошла ошибка при регистрации.');
+            setIsMessageVisible(false);
+        }
+    }, [message]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (messageTimerRef.current) {
+            clearTimeout(messageTimerRef.current);
+        }
+        setMessage({ text: '', type: '' });
+        setIsMessageVisible(false);
+
+        setIsLoading(true);
+
+        if (!loginInput || !password || !confirmPassword) {
+            setMessage({ text: 'Все поля обязательны для заполнения.', type: 'error' });
+            setIsLoading(false);
+            return;
         }
 
-    } catch (err) {
-        // Ошибка сети или JSON
-        console.error('Ошибка сети или выполнения запроса:', err);
-        setError(`Не удалось подключиться к серверу по адресу ${API_BASE_URL}. Проверьте адрес, запущен ли сервер и настройки CORS.`);
-    } finally {
-        setLoading(false); // Завершаем загрузку в любом случае
-    }
-  };
+        if (password !== confirmPassword) {
+            setMessage({ text: 'Пароли не совпадают.', type: 'error' });
+            setIsLoading(false);
+            return;
+        }
+        
+        if (password.length < 6) {
+            setMessage({ text: 'Пароль должен содержать не менее 6 символов.', type: 'error' });
+            setIsLoading(false);
+            return;
+        }
 
-  return (
-    <div className="auth-page-container">
-      <div className="auth-form-wrapper">
-        <h1>Создать аккаунт</h1>
-        <form onSubmit={handleRegister}>
+        const registerUrl = API_BASE_URL ? `${API_BASE_URL}/api/auth/register` : '/api/auth/register';
 
-          {/* Отображение ошибки */}
-          {error && <p className="auth-error-message">{error}</p>}
-          {/* Отображение сообщения об успехе */}
-          {successMessage && <p className="auth-success-message">{successMessage}</p>}
+        try {
+            const response = await fetch(registerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ login: loginInput, password }),
+            });
 
-          {/* --- Поле для Логина --- */}
-          <div className="auth-input-group">
-            <label htmlFor="join-login">Логин</label> {/* Изменено */}
-            <input
-              type="text" // Изменено
-              id="join-login" // Изменено
-              className="auth-input"
-              placeholder="Придумайте логин" // Изменено
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          {/* --- Поле для Пароля --- */}
-          <div className="auth-input-group">
-            <label htmlFor="join-password">Пароль</label>
-            <input
-              type="password"
-              id="join-password"
-              className="auth-input"
-              placeholder="Создайте пароль (мин. 6 символов)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength="6"
-              disabled={loading}
-            />
-          </div>
-          {/* --- Поле для Подтверждения Пароля --- */}
-          <div className="auth-input-group">
-            <label htmlFor="join-confirm-password">Подтвердите пароль</label>
-            <input
-              type="password"
-              id="join-confirm-password"
-              className="auth-input"
-              placeholder="Повторите пароль"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          {/* --- Кнопка Отправки --- */}
-          <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-          </button>
-        </form>
-        <p className="auth-prompt">
-          Уже есть аккаунт? <Link to="/login">Войти</Link>
-        </p>
-      </div>
-    </div>
-  );
-}
+            const responseData = await response.json();
 
-// Добавьте стили для success message, если нужно (аналогично error message)
-/*
-.auth-success-message {
-  color: #2ecc71; // Зеленый
-  background-color: #e8f8ef;
-  border: 1px solid #2ecc71;
-  padding: 10px;
-  border-radius: 4px;
-  text-align: center;
-  margin-bottom: 15px;
-  font-size: 0.9em;
-}
-*/
+            if (response.status === 201) {
+                setMessage({ text: responseData.message || 'Регистрация прошла успешно! Теперь вы можете войти.', type: 'success' });
+                setLoginInput('');
+                setPassword('');
+                setConfirmPassword('');
+            } else {
+                let errorMessage = 'Ошибка регистрации.';
+                if (responseData && responseData.message) {
+                    errorMessage = responseData.message;
+                } else if (response.status === 400) {
+                    errorMessage = 'Неверные данные. Логин и пароль обязательны.';
+                } else if (response.status === 409) {
+                    errorMessage = 'Пользователь с таким логином уже существует.';
+                } else if (response.status === 500) {
+                    errorMessage = 'Внутренняя ошибка сервера при регистрации.';
+                }
+                setMessage({ text: errorMessage, type: 'error' });
+            }
+        } catch (err) {
+            console.error("Registration page submit error:", err);
+            let finalErrorMessage = 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.';
+            if (err.name !== 'TypeError' || !err.message.toLowerCase().includes('failed to fetch')) {
+                finalErrorMessage = 'Произошла ошибка при регистрации.';
+            }
+            setMessage({ text: finalErrorMessage, type: 'error' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    return (
+        <div className="auth-page-container">
+            <div className="auth-form-wrapper">
+                <h1>Регистрация</h1>
 
-export default JoinPage;
+                <div className="auth-message-placeholder">
+                    <p
+                        className={`
+                            auth-message
+                            ${message.type === 'error' ? 'auth-error-message' : ''}
+                            ${message.type === 'success' ? 'auth-success-message' : ''}
+                            ${isMessageVisible ? 'visible' : ''}
+                        `}
+                    >
+                        {message.text || ''}
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="auth-input-group">
+                        <label htmlFor="login">Логин</label>
+                        <input
+                            type="text"
+                            id="login"
+                            className="auth-input"
+                            value={loginInput}
+                            onChange={(e) => setLoginInput(e.target.value)}
+                            placeholder="Придумайте логин"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="auth-input-group">
+                        <label htmlFor="password">Пароль</label>
+                        <input
+                            type="password"
+                            id="password"
+                            className="auth-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Придумайте пароль (мин. 6 символов)"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="auth-input-group">
+                        <label htmlFor="confirmPassword">Подтвердите пароль</label>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            className="auth-input"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Повторите пароль"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <button type="submit" className="auth-button" disabled={isLoading}>
+                        {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+                    </button>
+                </form>
+                <p className="auth-prompt">
+                    Уже есть аккаунт? <Link to="/login" className={isLoading ? 'disabled-link' : ''}>Войти</Link>
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default RegisterPage;

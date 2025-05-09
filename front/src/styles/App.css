@@ -79,9 +79,6 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
-}
 
 /* Стили для корневого элемента React, если нужно */
 #root {
