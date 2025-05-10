@@ -1,0 +1,67 @@
+/* src/components/ReviewForm/ReviewForm.css */
+
+.review-form-container {
+    /* Стили для .auth-form-wrapper, .auth-input-group и т.д.
+       предположительно находятся в game.css или глобальном CSS */
+}
+
+.review-form-container .auth-input-group label {
+    font-size: 0.95em;
+}
+
+/* Стили для интерактивных Unicode звезд в форме отзыва */
+.review-form-stars.interactive-unicode-stars {
+    display: flex;
+    margin-bottom: 10px;
+    user-select: none; /* Предотвратить выделение текста звезд при быстром клике */
+}
+
+.interactive-unicode-stars .unicode-star {
+    font-size: 1.8em; /* Размер Unicode звезд */
+    color: var(--color-star-empty, #ccc); /* Цвет для пустой звезды (☆) */
+    cursor: pointer;
+    margin-right: 3px; /* Отступ между звездами */
+    line-height: 1; /* Для лучшего выравнивания */
+    transition: color 0.15s ease-in-out, transform 0.1s ease-in-out;
+    border-radius: 2px;
+}
+
+.interactive-unicode-stars .unicode-star:focus {
+    outline: none; /* Убираем стандартный outline браузера */
+    /* box-shadow: none; /* Явно убираем box-shadow, если он был где-то задан для :focus */
+}
+
+
+/* Закрашенная звезда (★) и ховер */
+.interactive-unicode-stars .unicode-star.selected,
+.interactive-unicode-stars:not(.disabled) .unicode-star:hover {
+    color: var(--color-star-filled, #ffffff); /* Цвет для заполненной звезды (★) - белый */
+}
+
+/* Стили для отключенного состояния */
+.review-form-stars.interactive-unicode-stars.disabled .unicode-star {
+    cursor: not-allowed;
+    color: var(--color-star-disabled, #888);
+}
+.review-form-stars.interactive-unicode-stars.disabled .unicode-star:hover {
+    color: var(--color-star-disabled, #888);
+}
+/* Для отключенных звезд также убираем любой стиль фокуса, если он мог бы появиться */
+.review-form-stars.interactive-unicode-stars.disabled .unicode-star:focus {
+    outline: none;
+    /* box-shadow: none; */
+}
+
+
+.review-form-container .form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Адаптация для review-form внутри GamePage @media */
+@media (max-width: 768px) {
+    .interactive-unicode-stars .unicode-star {
+        font-size: 1.6em;
+    }
+}

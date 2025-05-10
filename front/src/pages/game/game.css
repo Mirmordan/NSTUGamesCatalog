@@ -70,55 +70,29 @@
     margin-left: 10px;
 }
 
-/* --- Стили для отображения рейтинга звездами --- */
-.star-rating-display { /* Общий контейнер для звезд */
+/* Стили для отображения ОБЩЕГО рейтинга игры (использует StarRating из gameCard.js) */
+.game-main-rating-display {
     display: flex;
     align-items: center;
-    font-size: 1.3em; /* Размер текста рядом со звездами */
-    font-weight: bold;
+    gap: 8px;
     color: var(--color-accent-focus);
+    font-weight: bold;
+    font-size: 1.2em;
 }
-
-.star-rating-display .stars-container { /* Контейнер для самих иконок звезд */
-    display: flex;
-    margin-right: 8px; /* Отступ от числового значения рейтинга */
+/* Стили для StarRating (из gameCard.css) применяются автоматически,
+   но можно настроить размер для этого контекста */
+.game-main-rating-display .star-display {
+    font-size: 1.2em;
 }
-
-.star-rating-display .star-icon {
-    font-size: 1.1em; /* Размер звезд чуть больше текста */
-    margin-right: 2px; /* Небольшой отступ между звездами */
-    color: #ccc; /* Цвет для пустой звезды по умолчанию */
-}
-
-.star-rating-display .star-icon.filled {
-    color: #ffd700; /* Золотой цвет для заполненной звезды */
-}
-.star-rating-display .star-icon.half-filled { /* Для полузакрашенной звезды (опционально) */
-    position: relative;
-    color: #ccc; /* Фон - пустая звезда */
-}
-.star-rating-display .star-icon.half-filled::before {
-    content: '\f089'; /* Код иконки полузвезды или полной звезды */
-    font-family: 'Font Awesome 5 Free'; /* или 'Font Awesome 5 Solid' */
-    font-weight: 900; /* Для solid иконок */
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 50%; /* Половина ширины */
-    overflow: hidden;
-    color: #ffd700; /* Цвет заполненной части */
-}
-
-
-.star-rating-display .rating-value { /* Числовое значение рейтинга */
-    margin-left: 5px;
-}
-.star-rating-display .no-rating {
+.game-main-rating-display .no-rating { /* Класс из StarRating компонента */
     font-size: 0.9em;
     font-weight: normal;
     color: var(--color-text-secondary);
 }
-/* ----------------------------------------------- */
+.game-main-rating-display .rating-value { /* Числовое значение */
+    /* Размер уже унаследован от .game-main-rating-display */
+}
+
 
 .game-info-item {
     font-size: 1em;
@@ -159,44 +133,119 @@
     padding-bottom: 10px;
 }
 
+.my-review-display {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--color-bg-element-highlight, var(--color-bg-element));
+    border-radius: 8px;
+    border: 1px solid var(--color-border-secondary);
+}
+
+.my-review-display h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--color-text-light);
+    font-size: 1.2em;
+}
+
+.my-review-display .my-review-item-wrapper {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.my-review-display .my-review-item-wrapper .review-item {
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
 .review-action-buttons button {
     margin-bottom: 20px;
 }
 
-.review-form-container {
+.auth-form-wrapper {
+    background-color: var(--color-bg-element);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 8px;
     padding: 25px;
+    box-shadow: var(--shadow-form);
     max-width: 700px;
     margin-bottom: 30px;
 }
-.review-form-container .auth-input-group label {
-    font-size: 0.95em;
-}
-.review-form-container .rating-input {
-    width: 100px;
-}
-/* --- Стили для звезд в форме отзыва --- */
-.review-form-stars {
-    display: flex;
-    margin-bottom: 10px;
-}
-.review-form-stars .star-icon {
-    font-size: 1.8em; /* Крупнее для кликабельности */
-    color: #ccc;
-    cursor: pointer;
-    margin-right: 5px;
-    transition: color 0.2s;
-}
-.review-form-stars .star-icon:hover,
-.review-form-stars .star-icon.selected,
-.review-form-stars:hover .star-icon.hover-selected { /* Для эффекта при наведении на контейнер */
-    color: #ffd700;
-}
-/* ------------------------------------ */
 
-.review-form-container .form-actions {
+.auth-input-group {
+    margin-bottom: 18px;
     display: flex;
-    gap: 15px;
-    margin-top: 20px;
+    flex-direction: column;
+}
+.auth-input-group label {
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-size: 0.9em;
+}
+.auth-input,
+textarea.auth-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 5px;
+    background-color: var(--color-bg-input);
+    color: var(--color-text-primary);
+    font-size: 1em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.auth-input:focus,
+textarea.auth-input:focus {
+    outline: none;
+    border-color: var(--color-accent-focus);
+    box-shadow: 0 0 0 2px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.3);
+}
+
+.auth-message {
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 0.95em;
+    text-align: center;
+    display: none;
+}
+.auth-message.visible {
+    display: block;
+}
+.auth-error-message {
+    background-color: rgba(var(--color-accent-error-rgb, 220, 53, 69), 0.15);
+    color: var(--color-accent-error);
+    border: 1px solid rgba(var(--color-accent-error-rgb, 220, 53, 69), 0.3);
+}
+.auth-success-message {
+    background-color: rgba(var(--color-accent-success-rgb, 40, 167, 69), 0.15);
+    color: var(--color-accent-success);
+    border: 1px solid rgba(var(--color-accent-success-rgb, 40, 167, 69), 0.3);
+}
+
+.auth-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--color-text-button);
+    background-color: var(--color-accent-primary);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+.auth-button:hover {
+    background-color: var(--color-accent-hover);
+    box-shadow: 0 2px 8px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.3);
+}
+.auth-button:disabled {
+    background-color: var(--color-bg-disabled);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .reviews-list {
@@ -211,67 +260,6 @@
     border-radius: 6px;
 }
 
-.review-item {
-    background-color: var(--color-bg-element);
-    padding: 15px 20px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    border: 1px solid var(--color-border-primary);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.review-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-}
-.review-item-user {
-    font-weight: 600;
-    color: var(--color-text-link);
-    font-size: 1.05em;
-}
-.review-item-rating-stars { /* Контейнер для звезд в отзыве */
-    display: flex;
-    align-items: center;
-}
-.review-item-rating-stars .star-icon { /* Стили звезд в отзыве */
-    font-size: 0.9em; /* Меньше, чем в общем рейтинге */
-    margin-right: 1px;
-    color: #ccc;
-}
-.review-item-rating-stars .star-icon.filled {
-    color: #ffd700;
-}
-.review-item-rating-stars .rating-value-text { /* Текст (X/10) рядом со звездами в отзыве */
-    font-size: 0.9em;
-    margin-left: 5px;
-    color: var(--color-text-secondary);
-    font-weight: normal;
-}
-
-.review-item-date {
-    font-size: 0.85em;
-    color: var(--color-text-secondary);
-    margin-top: 3px;
-    width: 100%;
-    text-align: left;
-}
-.review-item-header-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    text-align: right;
-}
-
-.review-item-text {
-    line-height: 1.6;
-    color: var(--color-text-primary);
-    white-space: pre-wrap;
-    font-size: 0.95em;
-    margin-top: 8px;
-}
-
 @media (max-width: 768px) {
     .game-details-layout {
         flex-direction: column;
@@ -283,22 +271,10 @@
     .game-info-container h1 {
         font-size: 1.8em;
     }
-    .star-rating-display { /* Адаптация общего рейтинга */
-        font-size: 1.1em;
-    }
-    .star-rating-display .star-icon {
+    .game-main-rating-display {
         font-size: 1em;
     }
-    .review-item-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .review-item-header-right {
-        align-items: flex-start;
-        text-align: left;
-        margin-top: 5px;
-    }
-    .review-item-date {
-        width: auto;
+    .game-main-rating-display .star-display {
+        font-size: 1em;
     }
 }

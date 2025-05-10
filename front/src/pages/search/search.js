@@ -1,34 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import './search.css'; // Убедитесь, что это правильный путь к вашему CSS (search.css)
+import './search.css'; 
+import GameCard from '../../components/gameCard/gameCard'; // Import the new component
 
 const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL;
-const PLACEHOLDER_IMG_SRC = '/placeholder.png';
+// PLACEHOLDER_IMG_SRC is now handled within GameCard.js
 
-const StarRating = ({ rating }) => {
-    if (rating === null || rating === undefined || rating <= 0) {
-        return <span className="no-rating">Нет рейтинга</span>;
-    }
-    return <><i className="fas fa-star"></i> {parseFloat(rating).toFixed(1)}</>;
-};
-
-const GameItemCard = React.memo(({ game }) => {
-    const [imgSrc, setImgSrc] = useState(`${API_BASE_URL}/api/img/${game.id}.png`);
-    useEffect(() => { setImgSrc(`${API_BASE_URL}/api/img/${game.id}.png`); }, [game.id]);
-    const handleImageError = () => setImgSrc(PLACEHOLDER_IMG_SRC);
-    return (
-        <Link to={`/games/${game.id}`} className="game-card">
-            <div className="game-card-image-container">
-                <img src={imgSrc} alt={game.name} className="game-card-image" onError={handleImageError} />
-            </div>
-            <div className="game-card-info">
-                <h3 className="game-card-title">{game.name}</h3>
-                {game.year && <p className="game-card-year">{game.year}</p>}
-                <div className="game-card-rating"><StarRating rating={game.rating} /></div>
-            </div>
-        </Link>
-    );
-});
+// StarRating is now inside GameCard.js
+// GameCard is imported
 
 const CollapsibleCheckboxFilter = ({ title, options, selectedOptions, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -67,8 +46,6 @@ const CollapsibleCheckboxFilter = ({ title, options, selectedOptions, onChange }
 function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Временные состояния для инпутов (то, что пользователь вводит/выбирает)
-    // Они будут инициализироваться и обновляться из searchParams
     const [tempMainSearchTerm, setTempMainSearchTerm] = useState(searchParams.get('search') || '');
     const [tempFilterGenres, setTempFilterGenres] = useState(searchParams.getAll('genre') || []);
     const [tempFilterPlatforms, setTempFilterPlatforms] = useState(searchParams.getAll('platform') || []);
@@ -79,21 +56,17 @@ function SearchPage() {
     const [tempSortBy, setTempSortBy] = useState(searchParams.get('sortBy') || 'g.name');
     const [tempSortOrder, setTempSortOrder] = useState(searchParams.get('sortOrder') || 'ASC');
 
-    // Состояния для данных, загрузки и ошибок
     const [games, setGames] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [totalPages, setTotalPages] = useState(0);
     const [totalGames, setTotalGames] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1); // Текущая страница, обновляется из ответа API
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // Списки для чекбоксов
     const [availableGenres, setAvailableGenres] = useState([]);
     const [availablePlatforms, setAvailablePlatforms] = useState([]);
     const itemsPerPage = 12;
 
-    // Эффект для синхронизации временных состояний (инпутов) с URL
-    // Это важно, если URL меняется извне (например, кнопки браузера "назад/вперед")
     useEffect(() => {
         setTempMainSearchTerm(searchParams.get('search') || '');
         setTempFilterGenres(searchParams.getAll('genre') || []);
@@ -106,15 +79,13 @@ function SearchPage() {
         setTempSortOrder(searchParams.get('sortOrder') || 'ASC');
     }, [searchParams]);
 
-    // Загрузка данных при изменении searchParams (включая страницу)
     useEffect(() => {
         const fetchGamesData = async () => {
             setIsLoading(true);
             setError('');
 
-            // Формируем queryParams напрямую из searchParams для запроса
             const query = new URLSearchParams(searchParams);
-            if (!query.has('page')) query.set('page', '1'); // Устанавливаем страницу по умолчанию, если нет
+            if (!query.has('page')) query.set('page', '1'); 
             query.set('limit', itemsPerPage.toString());
 
 
@@ -142,8 +113,6 @@ function SearchPage() {
 
         fetchGamesData();
 
-        // Загрузка опций для фильтров (один раз при монтировании)
-        // Это можно вынести в отдельный useEffect с пустым массивом зависимостей, если они не меняются
         const fetchFilterOptions = async () => {
              setAvailableGenres([
                 { value: 'Action', label: 'Экшн' }, { value: 'RPG', label: 'RPG' },
@@ -156,11 +125,11 @@ function SearchPage() {
                 { value: 'Xbox Series X/S', label: 'Xbox Series X/S' }, { value: 'Nintendo Switch', label: 'Nintendo Switch' }
             ]);
         };
-        if (availableGenres.length === 0) { // Загружаем только если еще не загружены
+        if (availableGenres.length === 0 && availablePlatforms.length === 0) { 
             fetchFilterOptions();
         }
 
-    }, [searchParams, itemsPerPage]); // Зависим от searchParams
+    }, [searchParams, itemsPerPage]); 
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
@@ -175,7 +144,6 @@ function SearchPage() {
     
     const applyAllFilters = () => {
         const newQueryParams = new URLSearchParams();
-        // Собираем параметры из temp* состояний
         if (tempMainSearchTerm) newQueryParams.set('search', tempMainSearchTerm);
         tempFilterGenres.forEach(g => newQueryParams.append('genre', g));
         tempFilterPlatforms.forEach(p => newQueryParams.append('platform', p));
@@ -185,7 +153,7 @@ function SearchPage() {
         if (tempMaxRating && tempMaxRating !== "10") newQueryParams.set('maxRating', tempMaxRating);
         if (tempSortBy && tempSortBy !== 'g.name') newQueryParams.set('sortBy', tempSortBy);
         if (tempSortOrder && tempSortOrder !== 'ASC') newQueryParams.set('sortOrder', tempSortOrder);
-        newQueryParams.set('page', '1'); // Всегда сбрасываем на первую страницу
+        newQueryParams.set('page', '1'); 
         
         setSearchParams(newQueryParams, { replace: true });
     };
@@ -195,7 +163,6 @@ function SearchPage() {
     };
 
     const resetAllFilters = () => {
-        // Сбрасываем временные состояния (инпуты)
         setTempMainSearchTerm('');
         setTempFilterGenres([]);
         setTempFilterPlatforms([]);
@@ -206,7 +173,6 @@ function SearchPage() {
         setTempSortBy('g.name');
         setTempSortOrder('ASC');
         
-        // Обновляем URL только страницей 1 (остальные параметры удалятся)
         setSearchParams({ page: '1' }, { replace: true });
     };
 
@@ -232,7 +198,7 @@ function SearchPage() {
                         <>
                             <p className="games-list-message">Найдено игр: {totalGames}</p>
                             <div className="games-grid">
-                                {games.map(game => <GameItemCard key={game.id} game={game} />)}
+                                {games.map(game => <GameCard key={game.id} game={game} />)}
                             </div>
                             {totalPages > 1 && (
                                 <div className="pagination-container">

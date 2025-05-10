@@ -1,8 +1,5 @@
 # Зависимости
 /node_modules
-
-/.pnp
-.pnp.js
 #Местные файлы
 /build
 .env.local

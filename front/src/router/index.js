@@ -9,9 +9,8 @@ import LoginPage from '../pages/login/login';
 import RegisterPage from '../pages/join/join';
 import GamePage from '../pages/game/game'; // <-- Путь к вашей GamePage, убедитесь, что он верный
 import SearchPage from '../pages/search/search';
-
+import HomePage from '../pages/home/home';
 // Placeholder компоненты для других страниц (замените на ваши реальные компоненты)
-const HomePage = () => <div>Главная страница</div>; // Замените на ваш компонент HomePage
 const ProfilePage = () => <div>Страница профиля пользователя</div>;
 const DashboardPage = () => <div>Панель пользователя (защищено)</div>;
 const AdminPanelPage = () => <div>Панель администратора (защищено, только админ)</div>;

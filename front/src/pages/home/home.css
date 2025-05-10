@@ -1,0 +1,73 @@
+/* styles/HomePage.css or pages/HomePage/HomePage.css */
+
+.home-page-container {
+    max-width: 1300px;
+    margin: 20px auto;
+    padding: 20px;
+    color: var(--color-text-primary);
+}
+
+.home-page-title {
+    text-align: center;
+    font-size: 2.2em;
+    margin-bottom: 30px;
+    color: var(--color-text-light);
+}
+
+.home-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust minmax for card size preference */
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.home-page-loader,
+.home-page-message {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: var(--color-text-secondary);
+}
+
+.home-page-message.home-page-error-message {
+    color: var(--color-accent-primary);
+    text-shadow: 0 0 8px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.7);
+}
+
+/* Responsive adjustments for home page grid */
+@media (max-width: 1200px) {
+    .home-games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .home-games-grid {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+    }
+    .home-page-title {
+        font-size: 2em;
+    }
+}
+
+@media (max-width: 576px) {
+    .home-games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Example: 2 cards per row on small screens */
+    }
+}
+
+@media (max-width: 400px) {
+    .home-games-grid {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+     .home-page-title {
+        font-size: 1.8em;
+    }
+}

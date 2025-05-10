@@ -1,12 +1,13 @@
 /* src/pages/SearchPage/SearchPage.css */
 
-/* ... (существующие стили до .filter-group) ... */
-
 .games-list-page-container {
     max-width: 1300px;
     margin: 20px auto;
     padding: 20px;
     color: var(--color-text-primary);
+    /* Добавляем overflow-x: hidden; чтобы предотвратить горизонтальный скролл на уровне страницы,
+       если какой-то дочерний элемент все же попытается выйти за рамки */
+    overflow-x: hidden; 
 }
 
 .games-list-page-container h1.page-title {
@@ -18,13 +19,13 @@
 
 .games-list-layout {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: nowrap; /* Сохраняем nowrap для основного десктопного вида */
     gap: 30px;
 }
 
 .games-main-content {
     flex-grow: 1;
-    min-width: 0;
+    min-width: 0; /* Очень важно! Позволяет этому блоку сжиматься меньше его содержимого */
 }
 
 .search-bar-container {
@@ -39,7 +40,7 @@
     color: var(--color-text-primary);
     border: 1px solid var(--color-border-primary);
     border-radius: 6px;
-    font-size: 1em;
+    font-size: 1em; 
 }
 .search-bar-container input[type="text"]:focus {
     border-color: var(--color-accent-focus);
@@ -48,18 +49,23 @@
 }
 
 .filters-sidebar {
-    flex-basis: 300px;
-    flex-shrink: 0;
+    /* flex-basis: 300px;  Убираем flex-basis */
+    width: 300px; /* Задаем желаемую ширину */
+    min-width: 220px; /* Минимальная ширина, до которой сайдбар может сжиматься */
+    /* max-width: 320px; /* Опционально: максимальная ширина, если нужно ограничить растягивание */
+    flex-shrink: 1; /* Позволяем сайдбару сжиматься, если не хватает места (по умолчанию 1) */
+                   /* Можно поставить больше 0, например 1, если .games-main-content имеет flex-shrink:0 (но у нас flex-grow:1) */
+    
     background-color: var(--color-bg-element-semi-transparent);
     padding: 20px;
     border-radius: 8px;
     border: 1px solid var(--color-border-secondary);
     box-shadow: var(--shadow-form);
-    align-self: flex-start;
+    align-self: flex-start; 
     position: sticky;
-    top: calc(var(--header-height) + 20px);
-    max-height: calc(100vh - var(--header-height) - 40px);
-    overflow-y: auto;
+    top: calc(var(--header-height) + 20px); 
+    max-height: calc(100vh - var(--header-height) - 40px); 
+    overflow-y: auto; 
 }
 
 .filters-sidebar h2 {
@@ -77,24 +83,41 @@
     margin-bottom: 18px;
 }
 
-.filter-group label:not(.checkbox-label) { /* Не применяем к лейблам чекбоксов */
+.filter-group label:not(.checkbox-label) { 
     font-size: 0.9em;
     color: var(--color-text-secondary);
     margin-bottom: 6px;
 }
 
 .filter-group input[type="text"],
-.filter-group input[type="number"], /* Добавлено для явности */
+.filter-group input[type="number"], 
 .filter-group select {
     width: 100%;
-    padding: 10px 12px;
+    padding: 9px 8px; 
     background-color: var(--color-bg-element);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border-primary);
     border-radius: 5px;
-    font-size: 0.95em;
+    font-size: 0.9em; 
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.4; 
+    box-sizing: border-box; 
 }
+.filter-group select {
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8a0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 1em;
+    padding-right: 28px; 
+}
+
+
 .filter-group input[type="text"]:focus,
 .filter-group input[type="number"]:focus,
 .filter-group select:focus {
@@ -103,11 +126,11 @@
     outline: none;
 }
 .filter-group select option {
-    background-color: var(--color-bg-element);
+    background-color: var(--color-bg-element); 
     color: var(--color-text-primary);
+    font-size: 1rem; 
 }
 
-/* Стили для раскрывающихся фильтров */
 .collapsible-filter .collapsible-header {
     background-color: transparent;
     color: var(--color-text-secondary);
@@ -130,13 +153,13 @@
     transition: transform 0.2s ease-in-out;
 }
 .collapsible-filter .collapsible-content {
-    padding: 10px 0 5px 0;
-    max-height: 200px; /* Ограничение высоты для списка чекбоксов */
-    overflow-y: auto; /* Прокрутка для длинных списков */
+    padding: 10px 0 5px 0; 
+    max-height: 200px; 
+    overflow-y: auto; 
 }
 .collapsible-filter .checkbox-label {
-    display: flex; /* Изменено на flex для лучшего выравнивания */
-    align-items: center; /* Центрирование по вертикали */
+    display: flex; 
+    align-items: center; 
     padding: 6px 5px;
     font-size: 0.9em;
     color: var(--color-text-primary);
@@ -148,9 +171,8 @@
     background-color: rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.1);
 }
 .collapsible-filter .checkbox-label input[type="checkbox"] {
-    margin-right: 8px; /* Отступ чекбокса от текста */
-    width: auto; /* Сброс width: 100% */
-    /* Можно добавить кастомные стили для чекбоксов, если нужно */
+    margin-right: 8px; 
+    width: auto; 
 }
 .collapsible-filter .no-options-message {
     font-size: 0.85em;
@@ -158,9 +180,8 @@
     padding: 5px;
 }
 
-/* Стили для фильтра по рейтингу (ползунки) */
-.range-filter label { /* Для общего заголовка "Рейтинг" */
-    margin-bottom: 8px !important; /* Увеличим отступ */
+.range-filter label { 
+    margin-bottom: 8px !important; 
 }
 .range-slider-labels {
     display: flex;
@@ -172,8 +193,12 @@
 .filter-group input[type="range"] {
     width: 100%;
     margin-bottom: 10px;
-    /* Можно добавить кастомные стили для ползунков */
-    accent-color: var(--color-accent-primary); /* Меняет цвет ползунка в некоторых браузерах */
+    accent-color: var(--color-accent-primary); 
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    padding: 0; 
+    line-height: normal; 
 }
 .filter-group input[type="range"]:last-child {
     margin-bottom: 0;
@@ -186,92 +211,16 @@
     gap: 10px;
     margin-top: 20px;
 }
-.filters-actions button {
+.filters-actions button { 
     padding: 10px 15px;
     width: 100%;
 }
 
-/* ... (остальные стили: .games-grid, .game-card и т.д. остаются как в предыдущем ответе) ... */
 .games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
     gap: 20px;
     margin-bottom: 30px;
-}
-
-.game-card {
-    background-color: var(--color-bg-element);
-    border-radius: 8px;
-    overflow: hidden;
-    text-decoration: none;
-    color: var(--color-text-primary);
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--color-border-primary);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-.game-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.2); 
-    border-color: var(--color-accent-focus);
-}
-
-.game-card-image-container {
-    width: 100%;
-    padding-top: 133.33%; 
-    position: relative;
-    background-color: var(--color-bg-dark-secondary); 
-}
-.game-card-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    color: transparent;
-    font-size: 0;
-    line-height: 0;
-    text-indent: -9999px;
-    overflow: hidden;
-}
-
-.game-card-info {
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; 
-}
-.game-card-title {
-    font-size: 1em;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--color-text-light);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.game-card-year {
-    font-size: 0.8em;
-    color: var(--color-text-secondary);
-    margin-bottom: 6px;
-}
-.game-card-rating {
-    font-size: 0.85em;
-    margin-top: auto; 
-    padding-top: 6px; 
-    color: var(--color-accent-focus);
-    font-weight: 500;
-}
-.game-card-rating .fa-star {
-    color: #ffd700;
-    margin-right: 3px;
-}
-.game-card-rating .no-rating {
-    font-size: 0.9em;
-    font-weight: normal;
-    color: var(--color-text-secondary);
 }
 
 .pagination-container {
@@ -305,6 +254,7 @@
     border-color: var(--color-accent-focus);
     color: var(--color-text-light);
     cursor: default;
+    font-weight: bold;
 }
 
 .games-list-loader,
@@ -319,27 +269,30 @@
      text-shadow: 0 0 5px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.7);
 }
 
+/* Медиа-запрос для переключения на одноколоночный макет */
 @media (max-width: 992px) {
     .games-list-layout {
         flex-direction: column;
     }
     .filters-sidebar {
-        flex-basis: auto;
-        width: 100%;
-        position: static;
-        max-height: none;
-        overflow-y: visible;
+        /* flex-basis: auto; /* Уже не используется */
+        width: 100%; /* На всю ширину в одноколоночном режиме */
+        min-width: unset; /* Сбрасываем min-width */
+        position: static; 
+        max-height: none; 
+        overflow-y: visible; 
         margin-bottom: 30px;
+        flex-shrink: 0; /* В одноколоночном режиме не должен сжиматься */
     }
     .filters-sidebar h2 {
-        text-align: left;
+        text-align: left; 
     }
     .filters-actions {
-        flex-direction: row;
+        flex-direction: row; 
         justify-content: flex-start;
     }
     .filters-actions button {
-        width: auto;
+        width: auto; 
     }
 }
 
@@ -348,11 +301,8 @@
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 15px;
     }
-    .game-card-title {
-        font-size: 0.95em;
-    }
     .collapsible-filter .collapsible-content {
-        max-height: 150px; /* Уменьшаем высоту для мобильных */
+        max-height: 150px; 
     }
 }
 @media (max-width: 480px) {
@@ -360,12 +310,27 @@
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
     .search-bar-container input[type="text"] {
-        font-size: 0.9em;
+        font-size: 0.9em; 
         padding: 10px 12px;
     }
     .pagination-container button,
     .pagination-container span {
         padding: 6px 10px;
         font-size: 0.9em;
+    }
+    .filters-actions {
+        flex-direction: column; 
+    }
+    .filters-actions button {
+        width: 100%;
+    }
+    .filter-group input[type="text"],
+    .filter-group input[type="number"], 
+    .filter-group select {
+        font-size: 0.85em; 
+        padding: 8px 6px; 
+    }
+    .filter-group select {
+        padding-right: 24px; 
     }
 }

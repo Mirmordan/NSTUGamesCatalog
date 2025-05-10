@@ -1,0 +1,110 @@
+/* styles/GameItemCard.css or components/GameItemCard/GameItemCard.css */
+
+.game-card {
+    background-color: var(--color-bg-element);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border-primary);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.2);
+    border-color: var(--color-accent-focus);
+}
+
+.game-card-image-container {
+    width: 100%;
+    padding-top: 133.33%; /* Aspect ratio 3:4 for the image container */
+    position: relative;
+    background-color: var(--color-bg-dark-secondary); /* Fallback bg for image */
+}
+.game-card-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    text-indent: -9999px;
+    overflow: hidden;
+}
+
+.game-card-info {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.game-card-title {
+    font-size: 1em;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--color-text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.game-card-year {
+    font-size: 0.8em;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+}
+
+/* Стили для рейтинга звездами */
+.game-card-rating {
+    margin-top: auto; /* Pushes rating to the bottom of the card info */
+    padding-top: 6px; /* Space above rating */
+    display: flex; /* Для корректного отображения и выравнивания "Нет рейтинга" */
+    align-items: center; /* Выравнивание по вертикали */
+    /* Задаем примерную высоту, чтобы карточки не "прыгали" по высоте
+       из-за разницы между звездами и текстом "Нет рейтинга".
+       Подберите это значение под ваш дизайн, если необходимо. */
+    min-height: 1.2em; /* Минимальная высота блока рейтинга */
+}
+
+.star-display {
+    display: inline-flex; /* Звезды в ряд */
+    line-height: 1; /* Убираем лишнее пространство по вертикали у звезд */
+}
+
+.rating-star {
+    /* Размер звезд можно настроить через font-size.
+       Он будет относительным к font-size родителя .game-card-rating или базовому. */
+    font-size: 1.1em;
+    margin-right: 1px; /* Небольшой отступ между звездами */
+    line-height: inherit; /* Наследуем line-height от .star-display для консистентности */
+}
+
+.rating-star-full {
+    color: #ffffff; /* Белая полная звезда (★) */
+}
+
+.rating-star-empty {
+    color: #ffffff; /* Белая контурная звезда (☆) */
+    /* Если вы хотите, чтобы пустые звезды были менее заметны (например, полупрозрачные): */
+    /* color: rgba(255, 255, 255, 0.6); */
+}
+
+.game-card-rating .no-rating {
+    font-size: 0.9em; /* Размер текста "Нет рейтинга" */
+    font-weight: normal;
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+    .game-card-title {
+        font-size: 0.95em;
+    }
+    .rating-star {
+        font-size: 1em; /* Можно немного уменьшить звезды на маленьких экранах */
+    }
+}
