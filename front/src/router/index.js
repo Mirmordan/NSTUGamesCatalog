@@ -10,12 +10,12 @@ import RegisterPage from '../pages/join/join';
 import GamePage from '../pages/game/game'; // <-- Путь к вашей GamePage, убедитесь, что он верный
 import SearchPage from '../pages/search/search';
 import HomePage from '../pages/home/home';
+import NotFoundPage from '../pages/error/404';
 // Placeholder компоненты для других страниц (замените на ваши реальные компоненты)
 const ProfilePage = () => <div>Страница профиля пользователя</div>;
 const DashboardPage = () => <div>Панель пользователя (защищено)</div>;
 const AdminPanelPage = () => <div>Панель администратора (защищено, только админ)</div>;
 const UnauthorizedPage = () => <div>Доступ запрещен (403)</div>;
-const NotFoundPage = () => <div>Страница не найдена (404)</div>;
 
 
 const AppRouter = () => {

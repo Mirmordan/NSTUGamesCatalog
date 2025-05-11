@@ -1,4 +1,3 @@
-
 // models/user.js
 const db = require('../db/connection');
 // const bcrypt = require('bcryptjs'); // Removed: Using hash.util.js now
@@ -65,6 +64,25 @@ const User = {
                     reject(err);
                 } else {
                     resolve(row || null); // Return null if not found
+                }
+            });
+        });
+    },
+
+    /**
+     * Finds user profile information (login and status) by ID.
+     * @param {number} id - The user's ID.
+     * @returns {Promise<object|null>} A promise that resolves with the user's login and status, or null if not found.
+     */
+    findProfileById: (id) => {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT login, status FROM users WHERE id = ?`;
+            db.get(sql, [id], (err, row) => {
+                if (err) {
+                    console.error('Error finding user profile by ID:', err.message);
+                    reject(err);
+                } else {
+                    resolve(row || null);
                 }
             });
         });

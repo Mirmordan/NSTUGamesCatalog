@@ -10,7 +10,7 @@ const ReviewItem = ({ review }) => {
     return (
         <li className="review-item">
             <div className="review-item-header">
-                <span className="review-item-user">{review.userLogin || 'Аноним'}</span>
+                <span className="review-item-user">{review.userLogin}</span>
                 <div className="review-item-header-right">
                     <div className="review-item-rating-display">
                         <StarRating rating={displayRating} maxStars={5} />

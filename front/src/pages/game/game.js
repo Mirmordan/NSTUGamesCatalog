@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/authContext'; // Убедитесь, что путь правильный
@@ -174,7 +175,13 @@ function GamePage() {
         : "";
 
     const otherReviews = reviews.filter(review => {
+        // Эта логика остается такой же, чтобы правильно фильтровать отзывы,
+        // даже если пользовательский отзыв отображается в форме.
         if (userReview && review.id === userReview.id && !showReviewForm) {
+            return false;
+        }
+         // Если форма показана, и это мой отзыв, он не должен быть в otherReviews
+        if (userReview && review.id === userReview.id && showReviewForm) {
             return false;
         }
         return true;
@@ -236,10 +243,12 @@ function GamePage() {
                     </div>
                 )}
 
-                {isAuthenticated && (
+                {/* Измененное условие: показываем кнопку только если форма не отображается */}
+                {isAuthenticated && !showReviewForm && (
                     <div className="review-action-buttons">
                         <button onClick={handleToggleReviewForm} className="auth-button">
-                            {showReviewForm ? 'Отменить' : (userReview ? 'Редактировать мой отзыв' : 'Написать отзыв')}
+                            {/* Текст кнопки теперь зависит только от наличия userReview, т.к. showReviewForm здесь всегда false */}
+                            {userReview ? 'Редактировать мой отзыв' : 'Написать отзыв'}
                         </button>
                     </div>
                 )}
@@ -249,7 +258,7 @@ function GamePage() {
                         initialRank={userReview ? userReview.rank : 3}
                         initialText={userReview ? userReview.review_text || '' : ''}
                         onSubmit={handleReviewSubmit}
-                        onCancel={() => setShowReviewForm(false)}
+                        onCancel={() => setShowReviewForm(false)} // Эта кнопка "Отмена" остаётся в форме
                         isSubmitting={isSubmittingReview}
                         submitMessage={submitReviewMessage}
                         isEditing={!!userReview}
@@ -264,7 +273,7 @@ function GamePage() {
                             <ReviewItem key={review.id} review={review} />
                         ))}
                     </ul>
-                ) : (!userReview || showReviewForm) && otherReviews.length === 0 ? (
+                ) : (!userReview || showReviewForm) && otherReviews.length === 0 && !(isLoadingUserReview && isAuthenticated) ? ( // Добавил проверку на isLoadingUserReview
                     <p className="no-reviews-message">Для этой игры пока нет одобренных отзывов.</p>
                 ) : null }
             </div>

@@ -25,5 +25,15 @@ router.put(
     userController.updateUserStatus
 );
 
+//                                                          --- Маршруты для профилей пользователей ---
+
+// GET /api/users/:id/profile - Получение информации о профиле пользователя (логин и статус)
+router.get(
+    '/:id/profile',
+    authenticateToken, // Доступно для всех аутентифицированных пользователей
+    userController.getUserProfile
+);
+
+
 //                                                          --- Экспорт ---
 module.exports = router;

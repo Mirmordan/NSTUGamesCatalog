@@ -3,6 +3,8 @@
 .review-form-container {
     /* Стили для .auth-form-wrapper, .auth-input-group и т.д.
        предположительно находятся в game.css или глобальном CSS */
+    margin-left: auto; /* Добавлено для центрирования */
+    margin-right: auto; /* Добавлено для центрирования */
 }
 
 .review-form-container .auth-input-group label {

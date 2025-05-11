@@ -47,8 +47,31 @@ const updateUserStatus = async (req, res, next) => {
     }
 };
 
+// --- Контроллеры (Профили Пользователей) ---
+
+// Получает информацию о профиле пользователя (логин и статус).
+const getUserProfile = async (req, res, next) => {
+    const userId = parseInt(req.params.id, 10);
+
+    if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Неверный формат ID пользователя.' });
+    }
+
+    try {
+        const userProfile = await userService.getUserProfile(userId);
+        res.json(userProfile);
+    } catch (error) {
+        console.error(`Ошибка в userController.getUserProfile для пользователя ${userId}:`, error);
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Внутренняя ошибка сервера при получении профиля пользователя.' });
+    }
+};
+
 // --- Экспорт ---
 module.exports = {
     getAllUsers,
     updateUserStatus,
+    getUserProfile, 
 };

@@ -1,46 +1,41 @@
+/* --- START OF FILE App.css --- */
+
 
 /* --- CSS Переменные для темы --- */
 :root {
-  /* Палитра */
-  --color-bg-dark-primary: #1c0514;     /* Самый темный фон */
-  --color-bg-dark-secondary: #3a0f2a;  /* Более светлый темный фон */
-  --color-bg-element: #1f0a18;         /* Фон инпутов */
-  --color-bg-element-semi-transparent: rgba(28, 5, 20, 0.88); /* Фон форм, хедера */
-
-  --color-text-primary: #f0e8ed;       /* Основной светлый текст */
-  --color-text-secondary: #b8a0b0;     /* Приглушенный текст (метки) */
-  --color-text-placeholder: #7a5a6a;   /* Цвет плейсхолдеров */
-  --color-text-link: #e880b5;          /* Яркий цвет ссылок */
-  --color-text-light: #ffffff;         /* Чисто белый для акцентов/hover */
-
-  --color-accent-primary: #a13f6f;     /* Основной акцентный (кнопки) */
-  --color-accent-secondary: #812f5a;   /* Вторичный акцентный (кнопки) */
-  --color-accent-focus: #b84a7a;       /* Акцент при фокусе */
-  --color-accent-hover-start: #b14f7f; /* Hover для кнопок (начало градиента) */
-  --color-accent-hover-end: #913f6a;   /* Hover для кнопок (конец градиента) */
-
-  --color-border-primary: #5a1f3a;     /* Рамка инпутов */
-  --color-border-secondary: rgba(200, 80, 120, 0.15); /* Рамка форм/хедера */
-  --color-border-focus-glow: rgba(184, 74, 122, 0.3); /* Свечение при фокусе */
-
-  /* Градиенты */
+  /* ... (остальные переменные остаются без изменений) ... */
+  --color-bg-dark-primary: #1c0514;
+  --color-bg-dark-secondary: #3a0f2a;
+  --color-bg-element: #1f0a18;
+  --color-bg-element-semi-transparent: rgba(28, 5, 20, 0.88);
+  --color-text-primary: #f0e8ed;
+  --color-text-secondary: #b8a0b0;
+  --color-text-placeholder: #7a5a6a;
+  --color-text-link: #e880b5;
+  --color-text-light: #ffffff;
+  --color-accent-primary: #a13f6f;
+  --color-accent-primary-rgb: 161, 63, 111;
+  --color-accent-secondary: #812f5a;
+  --color-accent-focus: #b84a7a;
+  --color-accent-hover-start: #b14f7f;
+  --color-accent-hover-end: #913f6a;
+  --color-border-primary: #5a1f3a;
+  --color-border-secondary: rgba(200, 80, 120, 0.15);
+  --color-border-focus-glow: rgba(184, 74, 122, 0.3);
   --gradient-page-bg: linear-gradient(135deg, var(--color-bg-dark-secondary) 0%, var(--color-bg-dark-primary) 100%);
   --gradient-button: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
   --gradient-button-hover: linear-gradient(135deg, var(--color-accent-hover-start) 0%, var(--color-accent-hover-end) 100%);
-
-  /* Тени */
   --shadow-form: 0 10px 30px rgba(0, 0, 0, 0.6);
   --shadow-header: 0 4px 15px rgba(0, 0, 0, 0.4);
   --shadow-button: 0 4px 15px rgba(161, 63, 111, 0.3);
   --shadow-button-hover: 0 6px 20px rgba(161, 63, 111, 0.4);
   --shadow-button-active: 0 2px 10px rgba(161, 63, 111, 0.3);
-
-  /* Шрифты */
   --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-  /* Размеры (опционально, но полезно) */
   --header-height: 70px;
   --header-height-mobile: 60px;
+
+  /* НОВАЯ ПЕРЕМЕННАЯ для ширины контентного контейнера */
+  --content-max-width: 1300px;
 }
 
 /* --- Базовые стили и сброс --- */
@@ -49,6 +44,7 @@
 *::after {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 li{
@@ -61,29 +57,158 @@ html {
 
 img{
   max-width: 100%;
-  width: 40px;
-  order: 1;
+  display: block;
 }
 
 body {
   font-family: var(--font-family-base);
-  background: var(--gradient-page-bg); /* Градиент на всю страницу */
-  background-attachment: fixed; /* Фиксируем градиент */
-  color: var(--color-text-primary); /* Основной цвет текста */
+  background: var(--gradient-page-bg);
+  background-attachment: fixed;
+  color: var(--color-text-primary);
   min-height: 100%;
+  line-height: 1.6;
 }
 
-/* Базовые стили для ссылок */
 a {
   color: var(--color-text-link);
   text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+a:hover {
+  color: var(--color-text-light);
+  /* text-decoration: underline; -- убрано, чтобы не конфликтовать с button-styled-link */
 }
 
-
-/* Стили для корневого элемента React, если нужно */
 #root {
-  min-height: 100%;
-  /* display: flex; */
-  /* flex-direction: column; */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+/* --- Общие стили для типографии --- */
+/* ... (остаются без изменений) ... */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  margin-bottom: 0.75em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+h1 { font-size: 2.8rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.8rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem;}
+h6 { font-size: 1.1rem; }
+p {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1.25em;
+}
+p.lead {
+  font-size: 1.15rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+/* --- Общие контейнеры и компоненты макета --- */
+.centered-content-page { /* Для страниц, где ВЕСЬ контент нужно центрировать вертикально и горизонтально */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  text-align: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  min-height: calc(100vh - var(--header-height));
+}
+
+@media (max-width: 768px) {
+  .centered-content-page {
+    min-height: calc(100vh - var(--header-height-mobile));
+  }
+}
+
+/* НОВЫЙ ОБЩИЙ КОНТЕЙНЕР ДЛЯ КОНТЕНТА */
+.content-container {
+  width: 100%; /* Занимает всю доступную ширину родителя */
+  max-width: var(--content-max-width); /* Ограничивает максимальную ширину */
+  margin-left: auto;  /* Центрирует контейнер по горизонтали */
+  margin-right: auto; /* Центрирует контейнер по горизонтали */
+  padding: 20px;      /* Внутренние отступы со всех сторон */
+  box-sizing: border-box;
+}
+
+
+/* --- Дополнительные утилиты для текста --- */
+/* ... (остаются без изменений) ... */
+.page-main-title {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  color: var(--color-text-primary);
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+.text-hero {
+  font-size: clamp(6rem, 20vw, 12rem);
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+.text-color-light {
+  color: var(--color-text-light) !important;
+  text-shadow: none;
+}
+.page-description-text {
+  color: var(--color-text-secondary);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+/* --- Стили для контентных изображений --- */
+/* ... (остаются без изменений) ... */
+.content-image {
+  height: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.content-image-xl {
+  width: clamp(100px, 25vw, 180px);
+}
+.image-filter-glow-accent {
+  filter: drop-shadow(0 0 10px rgba(var(--color-accent-primary-rgb), 0.2));
+}
+
+/* --- Стили для кнопок-ссылок --- */
+/* ... (остаются без изменений) ... */
+.button-styled-link {
+  display: inline-block;
+  padding: 12px 30px;
+  border-radius: 6px;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  margin-top: 10px;
+}
+.button-primary-theme {
+  background: var(--gradient-button);
+  color: var(--color-text-light) !important;
+  box-shadow: var(--shadow-button);
+}
+.button-primary-theme:hover {
+  background: var(--gradient-button-hover);
+  box-shadow: var(--shadow-button-hover);
+  color: var(--color-text-light) !important;
+  transform: translateY(-2px);
+}
+.button-primary-theme:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-button-active);
+}
+
+/* --- END OF FILE App.css --- */

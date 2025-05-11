@@ -49,10 +49,33 @@ const updateUserStatus = async (userId, newStatus) => {
     }
 };
 
+/**
+ * Retrieves profile information (login and status) for a specific user.
+ * @param {number} userId - The ID of the user.
+ * @returns {Promise<object>} A promise that resolves with the user's login and status.
+ * @throws {Error} If the user is not found or if retrieval fails.
+ */
+const getUserProfile = async (userId) => {
+    try {
+        const userProfile = await User.findProfileById(userId);
+        if (!userProfile) {
+            throw new Error(`User profile with ID ${userId} not found.`);
+        }
+        return userProfile;
+    } catch (error) {
+        console.error(`Error in userService.getUserProfile for ID ${userId}:`, error);
+        // Re-throw the error to be handled by the controller
+        // (could be "User profile not found" or other DB errors)
+        throw error;
+    }
+};
+
+
 // Note: A service function for deleting a user could be added here using User.remove(userId)
 // if that functionality is needed later.
 
 module.exports = {
     findAllUsers,
     updateUserStatus,
+    getUserProfile, // Добавлен экспорт новой функции
 };
