@@ -1,0 +1,211 @@
+/* src/pages/AdminPage/admin.css */
+
+.admin-page-container {
+    padding-top: 30px;
+    padding-bottom: 40px;
+}
+
+.admin-page-container h1 {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Общие сообщения */
+.admin-message {
+    text-align: center;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.admin-error-message {
+    background-color: rgba(161, 63, 111, 0.2);
+    color: var(--color-accent-primary);
+    border: 1px solid var(--color-accent-secondary);
+    text-shadow: 0 0 6px rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.7);
+}
+
+.admin-success-message {
+    background-color: rgba(80, 180, 100, 0.15);
+    color: #a2e8b0;
+    border: 1px solid rgba(80, 180, 100, 0.3);
+}
+
+
+/* Список отзывов */
+.admin-review-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.admin-review-item {
+    background-color: var(--color-bg-element);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 6px;
+    padding: 20px;
+    display: grid;
+    /* Обновленная разметка: детали сверху, действия снизу */
+    grid-template-areas:
+        "details"
+        "actions";
+    grid-template-columns: 1fr; /* Одна колонка */
+    gap: 20px; /* Увеличим отступ между деталями и действиями */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.admin-review-details {
+    grid-area: details;
+}
+
+/* Стили для <p> и <strong> внутри details остаются */
+.admin-review-details p {
+    margin-bottom: 8px;
+    color: var(--color-text-secondary);
+    font-size: 0.95em;
+}
+.admin-review-details p strong {
+    color: var(--color-text-primary);
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+/* Стили для цитаты остаются */
+.admin-review-text {
+    background-color: var(--color-bg-dark-primary);
+    border-left: 3px solid var(--color-accent-primary);
+    padding: 10px 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 0 4px 4px 0;
+    color: var(--color-text-primary);
+    font-style: normal;
+    font-size: 0.9em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.admin-review-text i {
+    color: var(--color-text-placeholder);
+    font-style: italic;
+}
+
+/* --- СТИЛИ ДЛЯ НОВОГО БЛОКА ДЕЙСТВИЙ --- */
+.admin-actions-group {
+    grid-area: actions; /* Присваиваем области 'actions' */
+    border-top: 1px solid var(--color-border-primary);
+    padding-top: 20px; /* Отступ сверху */
+    display: flex; /* Используем flex для расположения кнопок */
+    justify-content: center; /* Центрируем кнопки по горизонтали */
+    align-items: center; /* Выравниваем кнопки по вертикали */
+    gap: 25px; /* Увеличиваем отступ между кнопками */
+}
+/* --- КОНЕЦ СТИЛЕЙ ДЛЯ НОВОГО БЛОКА ДЕЙСТВИЙ --- */
+
+
+/* --- ОБНОВЛЕННЫЕ СТИЛИ КНОПОК --- */
+.admin-button {
+    display: flex; /* Используем flex для центрирования иконки внутри кнопки */
+    align-items: center;
+    justify-content: center;
+    width: 70px; /* Увеличиваем ширину кнопки */
+    height: 55px; /* Увеличиваем высоту кнопки */
+    padding: 0;
+    margin: 0; /* Убираем margin, т.к. используем gap в контейнере */
+    border: none;
+    border-radius: 6px; /* Немного скругляем углы */
+    font-size: 2em; /* Увеличиваем размер иконки */
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0, 0.3); /* Добавляем тень */
+}
+
+.admin-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.admin-button:hover:not(:disabled) {
+     transform: translateY(-2px); /* Эффект приподнимания */
+     box-shadow: 0 4px 8px rgba(0,0,0, 0.35); /* Увеличиваем тень */
+}
+.admin-button:active:not(:disabled) {
+    transform: translateY(0px); /* Эффект нажатия */
+    box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
+}
+
+
+.admin-button-approve {
+    background-color: #4CAF50; /* Зеленый */
+    color: white;
+}
+.admin-button-approve:hover:not(:disabled) {
+    background-color: #45a049;
+}
+
+.admin-button-reject {
+    background-color: #f44336; /* Красный */
+    color: white;
+}
+.admin-button-reject:hover:not(:disabled) {
+    background-color: #da190b;
+}
+
+.admin-button-block {
+    background-color: var(--color-accent-secondary); /* Темнее акцентный */
+    color: var(--color-text-light);
+}
+.admin-button-block:hover:not(:disabled) {
+    background-color: var(--color-accent-primary);
+}
+/* --- КОНЕЦ ОБНОВЛЕННЫХ СТИЛЕЙ КНОПОК --- */
+
+
+/* --- УДАЛЕНЫ СТИЛИ ДЛЯ .admin-review-actions и .admin-user-actions --- */
+
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .admin-review-item {
+       gap: 15px; /* Уменьшаем отступ на мобильных */
+    }
+    .admin-page-container h1 {
+        font-size: 1.8rem;
+    }
+    .admin-actions-group {
+        gap: 20px; /* Уменьшаем отступ между кнопками */
+        padding-top: 15px;
+        /* Можно сделать кнопки чуть меньше на мобильных */
+        /* justify-content: space-around; /* Или растянуть кнопки */
+    }
+    .admin-button {
+        width: 60px;
+        height: 48px;
+        font-size: 1.8em;
+    }
+
+}
+@media (max-width: 480px) {
+     .admin-review-item {
+        padding: 15px;
+    }
+    .admin-actions-group {
+        gap: 15px; /* Еще меньше отступ */
+        /* flex-wrap: wrap; /* Можно разрешить перенос кнопок */
+        /* justify-content: center; */
+    }
+    .admin-button {
+         width: 55px;
+         height: 45px;
+         font-size: 1.6em;
+         border-radius: 5px;
+     }
+     .admin-review-details p {
+        font-size: 0.9em;
+    }
+}

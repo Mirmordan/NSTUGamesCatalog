@@ -1,4 +1,5 @@
 /* src/components/Header/header.css */
+/* No changes needed to CSS variables */
 
 .app-header {
   position: sticky;
@@ -30,10 +31,12 @@
 .header-navigation {
   flex-grow: 1;
   display: flex;
-  justify-content: center;
+  justify-content: center; /* Center search within its available space */
   align-items: center;
-  padding: 0 20px;
-  position: relative;
+  padding: 0 20px; /* Spacing around search */
+  position: relative; /* Needed for dropdown positioning */
+  max-width: 650px; /* Limit width of the central navigation/search area */
+  margin: 0 auto; /* Help centering if flex-grow doesn't fill space */
 }
 
 .header-search-form {
@@ -42,7 +45,6 @@
   background-color: var(--color-bg-element);
   border-radius: 8px;
   width: 100%;
-  max-width: 550px;
   border: 1px solid var(--color-border-primary);
   transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
   position: relative;
@@ -73,12 +75,16 @@
   color: var(--color-text-link);
   padding: 10px 15px;
   cursor: pointer;
-  font-size: 16px;
+  /* font-size controlled by parent/icon size */
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 0 8px 8px 0;
   transition: color 0.2s ease, background-color 0.2s ease;
+}
+/* Set icon size within the button */
+.header-search-button svg {
+    font-size: 18px; /* Adjust size as needed */
 }
 .header-search-button:hover:not(:disabled) {
   color: var(--color-text-light);
@@ -90,12 +96,10 @@
 
 .header-search-dropdown {
   position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 550px;
+  top: calc(100% + 5px); /* Position below the search bar */
+  left: 0; /* Align with the left of the search form */
+  right: 0; /* Align with the right of the search form */
+  width: 100%; /* Take full width of the parent (.header-navigation) */
   background-color: var(--color-bg-element);
   border: 1px solid var(--color-border-primary);
   border-top: none;
@@ -103,7 +107,9 @@
   box-shadow: var(--shadow-form);
   list-style: none;
   padding: 0;
-  z-index: 999;
+  z-index: 999; /* Below header actions */
+  max-height: 400px; /* Limit dropdown height */
+  overflow-y: auto; /* Add scroll if needed */
 }
 
 .search-dropdown-item {
@@ -128,14 +134,19 @@
   background-color: var(--color-accent-secondary);
   color: var(--color-text-light);
 }
+/* Ensure hovered items have contrast */
+.search-dropdown-item a:hover .search-dropdown-item-name,
+.search-dropdown-item a:hover .search-dropdown-item-year {
+  color: var(--color-text-light);
+}
 
 .search-dropdown-item-image {
   width: 32px;
   height: 40px;
   object-fit: cover;
-  margin-right: 10px; /* Отступ картинки от блока с текстом */
+  margin-right: 10px;
   border-radius: 4px;
-  background-color: var(--color-bg-dark-secondary);
+  background-color: var(--color-bg-dark-secondary); /* Placeholder bg */
   flex-shrink: 0;
   display: block;
   color: transparent;
@@ -143,12 +154,10 @@
   line-height: 0;
   text-indent: -9999px;
   overflow: hidden;
-  order: 1; /* Явно указываем порядок, картинка первая */
+  order: 1;
 }
-
 .search-dropdown-item-image.has-error {
-  /* Стили для случая, если и плейсхолдер не загрузился */
-  /* Фон уже задан в .search-dropdown-item-image */
+   border: 1px dashed var(--color-border-primary);
 }
 
 .search-dropdown-item-details {
@@ -158,7 +167,7 @@
   justify-content: center;
   overflow: hidden;
   min-width: 0;
-  order: 2; /* Явно указываем порядок, блок с текстом второй */
+  order: 2;
 }
 
 .search-dropdown-item-title-line {
@@ -170,9 +179,10 @@
 .search-dropdown-item-year {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
-  margin-right: 6px; /* ИЗМЕНЕНО: Отступ справа от года (между годом и названием) */
+  margin-left: 6px;
   white-space: nowrap;
-  flex-shrink: 0; /* Год не будет сжиматься */
+  flex-shrink: 0;
+  order: 2;
 }
 
 .search-dropdown-item-name {
@@ -183,8 +193,9 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-grow: 1; /* Название занимает оставшееся место */
-  min-width: 0; /* Для корректной работы text-overflow в flex-контейнере */
+  flex-grow: 1;
+  min-width: 0;
+  order: 1;
 }
 
 .search-dropdown-item.loading,
@@ -193,52 +204,109 @@
   color: var(--color-text-secondary);
   text-align: center;
   font-size: 0.9rem;
+  font-style: italic;
+  display: flex; /* Use flex to align spinner and text */
+  align-items: center;
+  justify-content: center;
 }
+/* Style loading spinner icon */
+.search-dropdown-item.loading .spinner-icon {
+    margin-right: 8px;
+    /* Add animation if the icon doesn't spin by default */
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 
 .header-actions {
   display: flex;
   align-items: center;
   position: relative;
-  z-index: 1001;
+  z-index: 1001; /* Ensure actions are above dropdown */
+  gap: 8px; /* Spacing between action items */
 }
-.header-account,
-.header-action-logout-button {
+
+/* Generic style for action links (Login, Admin Panel) */
+.header-action-link {
   color: var(--color-text-primary);
-  font-size: 26px;
   text-decoration: none;
   transition: color 0.3s ease, transform 0.2s ease, background-color 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 8px;
   border-radius: 50%;
+  width: 42px; /* Consistent size */
+  height: 42px; /* Consistent size */
+  box-sizing: border-box;
 }
-.header-account:hover,
-.header-action-logout-button:hover:not(:disabled) {
+/* Set icon size within the link */
+.header-action-link svg {
+    font-size: 26px; /* Adjust icon size */
+}
+.header-action-link:hover {
   color: var(--color-text-link);
   transform: scale(1.1);
-  /* Если есть --color-accent-primary-rgb для rgba */
-  /* background-color: rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.15); */
-  /* Альтернатива, если нет -rgb переменной: */
-  background-color: rgba(161, 63, 111, 0.15); /* Прямое указание RGB от #a13f6f */
-
+  background-color: rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.15);
 }
-.header-action-logout-button {
+
+/* Generic style for action buttons (Logout) */
+.header-action-button {
+  color: var(--color-text-primary);
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 8px;
+  transition: color 0.3s ease, transform 0.2s ease, background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  width: 42px; /* Consistent size */
+  height: 42px; /* Consistent size */
+  box-sizing: border-box;
 }
-.header-action-logout-button:disabled {
+/* Set icon size within the button */
+.header-action-button svg {
+    font-size: 26px; /* Adjust icon size */
+}
+.header-action-button:hover:not(:disabled) {
+  color: var(--color-text-link);
+  transform: scale(1.1);
+  background-color: rgba(var(--color-accent-primary-rgb, 161, 63, 111), 0.15);
+}
+.header-action-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: transparent;
   transform: none;
 }
+
+/* Specific class names are less needed now, but kept for potential overrides */
+.header-login-link { /* Style for Login icon if needed */ }
+.header-admin-link { /* Style for Admin icon if needed */ }
+.header-logout-button { /* Style for Logout button if needed */ }
+
+
 .header-loading-indicator {
   color: var(--color-text-secondary);
   font-size: 14px;
   margin-left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Space between icon and text */
 }
+/* Style loading spinner icon in header */
+.header-loading-indicator .spinner-icon {
+    font-size: 18px; /* Size for header spinner */
+    /* Add animation if the icon doesn't spin by default */
+    animation: spin 1s linear infinite;
+}
+
 
 /* --- Адаптивность --- */
 @media (max-width: 768px) {
@@ -248,25 +316,36 @@
   }
   .header-navigation {
       padding: 0 10px;
+      max-width: none;
   }
   .header-search-input {
       font-size: 14px;
       padding: 8px 12px;
   }
-  .header-search-button {
-      padding: 8px 12px;
-      font-size: 15px;
-  }
-  .header-logo img { height: 35px; }
-  .header-account, .header-action-logout-button { font-size: 22px; padding: 6px;}
-  .header-action-logout-button { margin-left: 5px; }
+  .header-search-button { padding: 8px 12px; }
+  .header-search-button svg { font-size: 16px; } /* Adjust icon size */
 
+  .header-logo img { height: 35px; }
+
+  /* Adjust action items */
+  .header-actions { gap: 5px; }
+  .header-action-link, .header-action-button {
+    padding: 6px;
+    width: 34px;
+    height: 34px;
+  }
+  .header-action-link svg, .header-action-button svg {
+    font-size: 22px; /* Adjust icon size */
+  }
+
+  /* Adjust dropdown items */
   .search-dropdown-item a { padding: 6px 10px; min-height: 44px; }
-  .search-dropdown-item-image { width: 28px; height: 35px; margin-right: 8px; } /* Уменьшен отступ картинки */
-  .search-dropdown-item-year { margin-right: 5px; font-size: 0.75rem; } /* Уменьшен отступ года */
+  .search-dropdown-item-image { width: 28px; height: 35px; margin-right: 8px; }
+  .search-dropdown-item-year { margin-left: 5px; font-size: 0.75rem; }
   .search-dropdown-item-name { font-size: 0.85rem; }
   .search-dropdown-item.loading,
   .search-dropdown-item.no-results { font-size: 0.85rem; }
+  .search-dropdown-item.loading .spinner-icon { font-size: 16px; } /* Adjust spinner size */
 }
 
 @media (max-width: 480px) {
@@ -280,14 +359,25 @@
       font-size: 13px;
       padding: 7px 10px;
   }
-  .header-search-button {
-      padding: 7px 10px;
-      font-size: 14px;
-  }
-  .header-account, .header-action-logout-button { font-size: 20px; padding: 5px;}
+  .header-search-button { padding: 7px 10px; }
+  .header-search-button svg { font-size: 15px; } /* Adjust icon size */
 
+   /* Adjust action items */
+   .header-actions { gap: 3px; }
+   .header-action-link, .header-action-button {
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+  }
+   .header-action-link svg, .header-action-button svg {
+    font-size: 20px; /* Adjust icon size */
+  }
+
+  /* Adjust dropdown items */
   .search-dropdown-item a { padding: 5px 8px; min-height: 40px;}
-  .search-dropdown-item-image { width: 24px; height: 30px; margin-right: 6px; } /* Уменьшен отступ картинки */
-  .search-dropdown-item-year { margin-right: 4px; } /* Уменьшен отступ года */
+  .search-dropdown-item-image { width: 24px; height: 30px; margin-right: 6px; }
+  .search-dropdown-item-year { margin-left: 4px; }
   .search-dropdown-item-name { font-size: 0.8rem; }
+  .search-dropdown-item.loading .spinner-icon { font-size: 14px; } /* Adjust spinner size */
+
 }
