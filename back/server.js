@@ -42,7 +42,7 @@ app.use((err, req, res, next) => {
 });
 
 // Запускаем сервер и начинаем слушать указанный порт
-app.listen(PORT, () => {
+app.listen(PORT,'0.0.0.0', () => {
   console.log(`Сервер запущен на порту ${PORT}`);
   console.log(`Полный адрес http://localhost:${PORT}/`);
   console.log('Сервер отправляет изображения в /img из:', staticPath); 
