@@ -4,10 +4,6 @@ import './search.css';
 import GameCard from '../../components/gameCard/gameCard'; // Import the new component
 
 const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL;
-// PLACEHOLDER_IMG_SRC is now handled within GameCard.js
-
-// StarRating is now inside GameCard.js
-// GameCard is imported
 
 const CollapsibleCheckboxFilter = ({ title, options, selectedOptions, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +48,7 @@ function SearchPage() {
     const [tempFilterPublisher, setTempFilterPublisher] = useState(searchParams.get('publisher') || '');
     const [tempFilterDeveloper, setTempFilterDeveloper] = useState(searchParams.get('developer') || '');
     const [tempMinRating, setTempMinRating] = useState(searchParams.get('minRating') || '0');
-    const [tempMaxRating, setTempMaxRating] = useState(searchParams.get('maxRating') || '10');
+    const [tempMaxRating, setTempMaxRating] = useState(searchParams.get('maxRating') || '5'); 
     const [tempSortBy, setTempSortBy] = useState(searchParams.get('sortBy') || 'g.name');
     const [tempSortOrder, setTempSortOrder] = useState(searchParams.get('sortOrder') || 'ASC');
 
@@ -74,7 +70,7 @@ function SearchPage() {
         setTempFilterPublisher(searchParams.get('publisher') || '');
         setTempFilterDeveloper(searchParams.get('developer') || '');
         setTempMinRating(searchParams.get('minRating') || '0');
-        setTempMaxRating(searchParams.get('maxRating') || '10');
+        setTempMaxRating(searchParams.get('maxRating') || '5'); 
         setTempSortBy(searchParams.get('sortBy') || 'g.name');
         setTempSortOrder(searchParams.get('sortOrder') || 'ASC');
     }, [searchParams]);
@@ -90,9 +86,10 @@ function SearchPage() {
 
 
             try {
+                // console.log("Fetching games with query:", query.toString());
                 const response = await fetch(`${API_BASE_URL}/api/games?${query.toString()}`);
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown server error' }));
                     throw new Error(errorData.message || `Ошибка загрузки игр: ${response.status}`);
                 }
                 const data = await response.json();
@@ -146,11 +143,23 @@ function SearchPage() {
         const newQueryParams = new URLSearchParams();
         if (tempMainSearchTerm) newQueryParams.set('search', tempMainSearchTerm);
         tempFilterGenres.forEach(g => newQueryParams.append('genre', g));
-        tempFilterPlatforms.forEach(p => newQueryParams.append('platform', p));
+        tempFilterPlatforms.forEach(p => newQueryParams.append('platform', p)); // Платформы пока не фильтруются на бэке
         if (tempFilterPublisher) newQueryParams.set('publisher', tempFilterPublisher);
         if (tempFilterDeveloper) newQueryParams.set('developer', tempFilterDeveloper);
-        if (tempMinRating && tempMinRating !== "0") newQueryParams.set('minRating', tempMinRating);
-        if (tempMaxRating && tempMaxRating !== "10") newQueryParams.set('maxRating', tempMaxRating);
+        
+        // Отправляем minRating всегда, если он не '0'
+        if (tempMinRating && tempMinRating !== "0") {
+            newQueryParams.set('minRating', tempMinRating);
+        }
+        // Отправляем maxRating всегда, если он не '5' (дефолтное максимальное значение)
+        // Если '5' должно быть явным фильтром, это условие можно изменить или убрать
+        if (tempMaxRating && tempMaxRating !== "5") {
+            newQueryParams.set('maxRating', tempMaxRating);
+        } else if (tempMaxRating === "5") { // Если пользователь выбрал 5, отправляем его
+             newQueryParams.set('maxRating', tempMaxRating);
+        }
+
+
         if (tempSortBy && tempSortBy !== 'g.name') newQueryParams.set('sortBy', tempSortBy);
         if (tempSortOrder && tempSortOrder !== 'ASC') newQueryParams.set('sortOrder', tempSortOrder);
         newQueryParams.set('page', '1'); 
@@ -169,11 +178,15 @@ function SearchPage() {
         setTempFilterPublisher('');
         setTempFilterDeveloper('');
         setTempMinRating('0');
-        setTempMaxRating('10');
+        setTempMaxRating('5'); 
         setTempSortBy('g.name');
         setTempSortOrder('ASC');
         
-        setSearchParams({ page: '1' }, { replace: true });
+        const newSearchParamsObj = { page: '1' };
+        // Если вы хотите, чтобы при сбросе minRating и maxRating явно отправлялись на бэк
+        // newSearchParamsObj.minRating = '0';
+        // newSearchParamsObj.maxRating = '5';
+        setSearchParams(newSearchParamsObj, { replace: true });
     };
 
     return (
@@ -247,14 +260,14 @@ function SearchPage() {
                                 <span>До: {tempMaxRating}</span>
                             </div>
                             <input 
-                                type="range" id="minRating" min="0" max="10" step="0.5" value={tempMinRating} 
+                                type="range" id="minRating" min="0" max="5" step="0.5" value={tempMinRating} 
                                 onChange={(e) => {
                                     const val = parseFloat(e.target.value);
                                     if (val <= parseFloat(tempMaxRating)) setTempMinRating(e.target.value);
                                 }}
                             />
                             <input 
-                                type="range" id="maxRating" min="0" max="10" step="0.5" value={tempMaxRating} 
+                                type="range" id="maxRating" min="0" max="5" step="0.5" value={tempMaxRating} 
                                 onChange={(e) => {
                                     const val = parseFloat(e.target.value);
                                     if (val >= parseFloat(tempMinRating)) setTempMaxRating(e.target.value);

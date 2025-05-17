@@ -71,8 +71,15 @@ const Game = {
 
             // Фильтрация
             if (options.genre) {
-                whereClauses.push(`LOWER(g.genre) = LOWER(?)`); // Регистронезависимое сравнение
-                params.push(options.genre);
+                // Для множественных жанров, если options.genre - это массив
+                if (Array.isArray(options.genre) && options.genre.length > 0) {
+                    const genrePlaceholders = options.genre.map(() => 'LOWER(?)').join(', ');
+                    whereClauses.push(`LOWER(g.genre) IN (${genrePlaceholders})`);
+                    options.genre.forEach(g => params.push(g.toLowerCase()));
+                } else if (typeof options.genre === 'string') {
+                    whereClauses.push(`LOWER(g.genre) = LOWER(?)`); // Регистронезависимое сравнение
+                    params.push(options.genre);
+                }
             }
             if (options.year) {
                 whereClauses.push(`g.year = ?`);
@@ -86,9 +93,13 @@ const Game = {
                 whereClauses.push(`g.developer_id = ?`);
                 params.push(options.developerId);
             }
-            if (options.minRating) {
+            if (options.minRating !== undefined) { // Проверяем, что minRating определен
                  whereClauses.push(`g.rating >= ?`);
                  params.push(options.minRating);
+            }
+            if (options.maxRating !== undefined) { // *** ИЗМЕНЕНО: Добавляем maxRating ***
+                whereClauses.push(`g.rating <= ?`);
+                params.push(options.maxRating);
             }
             if (options.search) {
                  whereClauses.push(`(LOWER(g.name) LIKE LOWER(?) OR LOWER(g.description) LIKE LOWER(?))`);
@@ -112,7 +123,7 @@ const Game = {
             if (options.limit && options.limit > 0) {
                 sql += ` LIMIT ?`;
                 params.push(options.limit);
-                if (options.offset && options.offset >= 0) {
+                if (options.offset !== undefined && options.offset >= 0) { // Проверяем, что offset определен
                     sql += ` OFFSET ?`;
                     params.push(options.offset);
                 }
@@ -120,10 +131,11 @@ const Game = {
                 // Ограничение по умолчанию, чтобы избежать выборки всей базы
                 sql += ` LIMIT 50`;
             }
+            // console.log("Executing SQL:", sql, params); // Для дебага
 
             db.all(sql, params, (err, rows) => {
                 if (err) {
-                    console.error('Error fetching games:', err.message);
+                    console.error('Error fetching games:', err.message, sql, params);
                     reject(err);
                 } else {
                     resolve(rows);
@@ -140,20 +152,34 @@ const Game = {
             const whereClauses = [];
 
              // Копируем логику фильтрации из findAll
-            if (options.genre) { whereClauses.push(`LOWER(g.genre) = LOWER(?)`); params.push(options.genre); }
+            if (options.genre) {
+                if (Array.isArray(options.genre) && options.genre.length > 0) {
+                    const genrePlaceholders = options.genre.map(() => 'LOWER(?)').join(', ');
+                    whereClauses.push(`LOWER(g.genre) IN (${genrePlaceholders})`);
+                    options.genre.forEach(g => params.push(g.toLowerCase()));
+                } else if (typeof options.genre === 'string') {
+                    whereClauses.push(`LOWER(g.genre) = LOWER(?)`);
+                    params.push(options.genre);
+                }
+            }
             if (options.year) { whereClauses.push(`g.year = ?`); params.push(options.year); }
             if (options.publisherId) { whereClauses.push(`g.publisher_id = ?`); params.push(options.publisherId); }
             if (options.developerId) { whereClauses.push(`g.developer_id = ?`); params.push(options.developerId); }
-             if (options.minRating) { whereClauses.push(`g.rating >= ?`); params.push(options.minRating); }
+            if (options.minRating !== undefined) { whereClauses.push(`g.rating >= ?`); params.push(options.minRating); }
+            if (options.maxRating !== undefined) { // *** ИЗМЕНЕНО: Добавляем maxRating ***
+                whereClauses.push(`g.rating <= ?`);
+                params.push(options.maxRating);
+            }
             if (options.search) { whereClauses.push(`(LOWER(g.name) LIKE LOWER(?) OR LOWER(g.description) LIKE LOWER(?))`); params.push(`%${options.search}%`, `%${options.search}%`); }
 
             if (whereClauses.length > 0) {
                 sql += ` WHERE ${whereClauses.join(' AND ')}`;
             }
+            // console.log("Executing SQL (count):", sql, params); // Для дебага
 
             db.get(sql, params, (err, row) => {
                 if (err) {
-                    console.error('Error counting games:', err.message);
+                    console.error('Error counting games:', err.message, sql, params);
                     reject(err);
                 } else {
                     resolve(row ? row.count : 0);
