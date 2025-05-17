@@ -4,3 +4,4 @@
 /node_modules
 /img
 package-lock.json
+games.sqlite
