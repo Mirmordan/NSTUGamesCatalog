@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/authContext'; // Убедитесь, что путь правильный
+import { useParams, Link } from 'react-router-dom'; // Import Link
+import { useAuth } from '../../contexts/authContext';
 import { StarRating } from '../../components/gameCard/gameCard';
 import ReviewItem from '../../components/review/reviewItem';
 import ReviewForm from '../../components/review/reviewForm';
@@ -12,16 +11,15 @@ const PLACEHOLDER_IMG_SRC = '/placeholder-game-cover.png';
 
 function GamePage() {
     const { gameId } = useParams();
-    const { isAuthenticated, token, user: currentUser } = useAuth(); // Достаем currentUser из useAuth
+    const { isAuthenticated, token, user: currentUser } = useAuth();
 
-    // ... (остальные useState, useEffect, функции без изменений до return) ...
     const [gameDetails, setGameDetails] = useState(null);
     const [isLoadingGame, setIsLoadingGame] = useState(true);
     const [error, setError] = useState('');
 
     const [reviews, setReviews] = useState([]);
     const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-    const [userReview, setUserReview] = useState(null); // Этот объект с бэка НЕ будет иметь userLogin
+    const [userReview, setUserReview] = useState(null);
     const [isLoadingUserReview, setIsLoadingUserReview] = useState(false);
 
     const [showReviewForm, setShowReviewForm] = useState(false);
@@ -61,8 +59,9 @@ function GamePage() {
             const response = await fetch(`${API_BASE_URL}/api/reviews/game/${gameId}`);
             if (!response.ok) throw new Error('Не удалось загрузить отзывы.');
             const data = await response.json();
-            setReviews(data || []); // Эти отзывы должны иметь userLogin
-        } catch (err) {
+            setReviews(data || []);
+        } catch (err)
+ {
             console.error("Error fetching game reviews:", err);
         } finally {
             setIsLoadingReviews(false);
@@ -81,7 +80,7 @@ function GamePage() {
             });
             if (response.ok) {
                 const data = await response.json();
-                setUserReview(data); // data НЕ содержит userLogin
+                setUserReview(data);
             } else if (response.status === 404) {
                 setUserReview(null);
             } else {
@@ -175,30 +174,24 @@ function GamePage() {
         : "";
 
     const otherReviews = reviews.filter(review => {
-        // Эта логика остается такой же, чтобы правильно фильтровать отзывы,
-        // даже если пользовательский отзыв отображается в форме.
         if (userReview && review.id === userReview.id && !showReviewForm) {
             return false;
         }
-         // Если форма показана, и это мой отзыв, он не должен быть в otherReviews
         if (userReview && review.id === userReview.id && showReviewForm) {
             return false;
         }
         return true;
     });
 
-    // Создаем объект для userReview с добавленным userLogin из currentUser
-    // Это нужно делать здесь, а не в ReviewItem, чтобы ReviewItem оставался универсальным
     const enrichedUserReview = userReview && currentUser ? {
         ...userReview,
-        userLogin: currentUser.login // Предполагаем, что у currentUser есть поле login
+        userLogin: currentUser.login
     } : userReview;
 
 
     return (
         <div className="game-page-container">
             <div className="game-details-layout">
-                {/* ... game details layout ... */}
                 <div className="game-cover-container">
                     <img src={coverImageSrc} alt={gameDetails.name} className="game-cover-image" onError={handleCoverImageError} />
                 </div>
@@ -219,10 +212,44 @@ function GamePage() {
                         )}
                     </div>
 
-                    {gameDetails.genre && <div className="game-info-item"><strong>Жанр:</strong> <span>{gameDetails.genre}</span></div>}
-                    {gameDetails.platforms && <div className="game-info-item"><strong>Платформы:</strong> <span>{gameDetails.platforms}</span></div>}
-                    {gameDetails.developer_name && <div className="game-info-item"><strong>Разработчик:</strong> <span>{gameDetails.developer_name}</span></div>}
-                    {gameDetails.publisher_name && <div className="game-info-item"><strong>Издатель:</strong> <span>{gameDetails.publisher_name}</span></div>}
+                    {gameDetails.genre && (
+                        <div className="game-info-item">
+                            <strong>Жанр:</strong>{' '}
+                            {gameDetails.genre.split(',').map(g => g.trim()).map((genreItem, index, array) => (
+                                <React.Fragment key={genreItem}>
+                                    <Link to={`/games?genre=${encodeURIComponent(genreItem)}`}>{genreItem}</Link>
+                                    {index < array.length - 1 && ', '}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    )}
+                    {gameDetails.platforms && (
+                        <div className="game-info-item">
+                            <strong>Платформы:</strong>{' '}
+                            {gameDetails.platforms.split(',').map(p => p.trim()).map((platformItem, index, array) => (
+                                <React.Fragment key={platformItem}>
+                                    <Link to={`/games?platform=${encodeURIComponent(platformItem)}`}>{platformItem}</Link>
+                                    {index < array.length - 1 && ', '}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    )}
+                    {gameDetails.developer_name && (
+                        <div className="game-info-item">
+                            <strong>Разработчик:</strong>{' '}
+                            <Link to={`/games?developer=${encodeURIComponent(gameDetails.developer_name)}`}>
+                                {gameDetails.developer_name}
+                            </Link>
+                        </div>
+                    )}
+                    {gameDetails.publisher_name && (
+                        <div className="game-info-item">
+                            <strong>Издатель:</strong>{' '}
+                            <Link to={`/games?publisher=${encodeURIComponent(gameDetails.publisher_name)}`}>
+                                {gameDetails.publisher_name}
+                            </Link>
+                        </div>
+                    )}
 
                     {gameDetails.description && (
                         <div className="game-description"><h3>Описание:</h3><p>{gameDetails.description}</p></div>
@@ -237,17 +264,14 @@ function GamePage() {
                     <div className="my-review-display">
                         <h4>Ваш отзыв:</h4>
                         <ul className="reviews-list my-review-item-wrapper">
-                           {/* Передаем обогащенный userReview */}
                            <ReviewItem review={enrichedUserReview} />
                         </ul>
                     </div>
                 )}
 
-                {/* Измененное условие: показываем кнопку только если форма не отображается */}
                 {isAuthenticated && !showReviewForm && (
                     <div className="review-action-buttons">
                         <button onClick={handleToggleReviewForm} className="auth-button">
-                            {/* Текст кнопки теперь зависит только от наличия userReview, т.к. showReviewForm здесь всегда false */}
                             {userReview ? 'Редактировать мой отзыв' : 'Написать отзыв'}
                         </button>
                     </div>
@@ -258,7 +282,7 @@ function GamePage() {
                         initialRank={userReview ? userReview.rank : 3}
                         initialText={userReview ? userReview.review_text || '' : ''}
                         onSubmit={handleReviewSubmit}
-                        onCancel={() => setShowReviewForm(false)} // Эта кнопка "Отмена" остаётся в форме
+                        onCancel={() => setShowReviewForm(false)}
                         isSubmitting={isSubmittingReview}
                         submitMessage={submitReviewMessage}
                         isEditing={!!userReview}
@@ -273,7 +297,7 @@ function GamePage() {
                             <ReviewItem key={review.id} review={review} />
                         ))}
                     </ul>
-                ) : (!userReview || showReviewForm) && otherReviews.length === 0 && !(isLoadingUserReview && isAuthenticated) ? ( // Добавил проверку на isLoadingUserReview
+                ) : (!userReview || showReviewForm) && otherReviews.length === 0 && !(isLoadingUserReview && isAuthenticated) ? (
                     <p className="no-reviews-message">Для этой игры пока нет одобренных отзывов.</p>
                 ) : null }
             </div>

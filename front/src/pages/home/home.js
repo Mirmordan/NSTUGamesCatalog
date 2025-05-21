@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import GameCard from '../../components/gameCard/gameCard';
 import './home.css'; // Импортируем еще более сокращенные стили
 
@@ -45,19 +46,25 @@ function HomePage() {
             {/* Приветственное сообщение */}
             <div style={{ textAlign: 'center', marginBottom: '30px', marginTop: '0' /* Явно указываем отступ */ }}>
                 <h1 className="text-color-light" style={{ marginBottom: '10px' }}>
-                    Добро пожаловать!
+                    Добро пожаловать на главную страницу!
                 </h1>
                 <p className="page-description-text" style={{ marginBottom: '0' }}>
                     Здесь вы найдете подборку лучших игр, основанных на оценках пользователей. Приятного времяпровождения!
                 </p>
+                <p className="page-description-text" style={{ marginBottom: '0' }}>
+                    Чтобы искать интересующие игры используйте строку поиска в шапке страницы
+                </p>
+                <p className="page-description-text" style={{ marginBottom: '0' }}>
+                    Поиск с параметрами представлен на <Link className="header-logo" to="/games?">странице поиска</Link>, где вы найдёте любую игру!
+                </p>
             </div>
 
-            {/* Заголовок для списка игр */}
+            
             <h2 className="text-color-light" style={{ textAlign: 'center', marginBottom: '30px' }}>
                 Лучшие игры
             </h2>
 
-            {/* Отображение игр или сообщений */}
+            {/* Отображение игр  */}
             {isLoading ? (
                 <p className="page-description-text" style={messageBlockStyle}>
                     Загрузка лучших игр...
@@ -67,7 +74,7 @@ function HomePage() {
                     {error}
                 </p>
             ) : topGames.length > 0 ? (
-                <div className="home-games-grid"> {/* Отступ сверху для сетки теперь не нужен, т.к. есть отступ от заголовка h2 */}
+                <div className="home-games-grid"> 
                     {topGames.map(game => (
                         <GameCard key={game.id} game={game} />
                     ))}

@@ -165,7 +165,7 @@ const AdminPage = () => {
                                 <p><strong>ID Отзыва:</strong> {review.id}</p>
                                 <p><strong>Игра:</strong> {review.gameTitle} (ID: {review.game_id})</p>
                                 <p><strong>Пользователь:</strong> {review.userLogin} (ID: {review.user_id})</p>
-                                <p><strong>Оценка:</strong> {review.rank}/10</p>
+                                <p><strong>Оценка:</strong> {review.rank}/5</p>
                                 <p><strong>Дата:</strong> {new Date(review.created_at).toLocaleString('ru-RU')}</p>
                                 <p><strong>Текст:</strong></p>
                                 <blockquote className="admin-review-text">{review.review_text || <i>(Текст отсутствует)</i>}</blockquote>
