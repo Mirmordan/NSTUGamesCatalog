@@ -3,3 +3,4 @@
 #Местные файлы
 /build
 .env.local
+nohup.out

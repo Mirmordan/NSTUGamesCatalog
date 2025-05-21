@@ -6,13 +6,7 @@ if (!API_BASE_URL && process.env.NODE_ENV !== 'test') {
     console.error("CRITICAL ERROR: REACT_APP_API_SERVER_URL is not defined in the environment. API calls will fail.");
 }
 
-/**
- * Makes an API request.
- * @param {string} endpoint - The API endpoint (e.g., '/api/games'). Should start with '/'.
- * @param {object} [options={}] - Fetch options (method, headers, body, etc.).
- * @returns {Promise<any>} - A promise that resolves with the JSON response body.
- * @throws {Error} - Throws an error if the request fails or the response is not ok, including the status code and message from the server if possible.
- */
+
 const apiHelper = async (endpoint, options = {}) => {
     const url = `${API_BASE_URL}${endpoint}`; // Construct full URL
 

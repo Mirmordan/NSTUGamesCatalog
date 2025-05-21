@@ -1,17 +1,15 @@
 # Введение
 Тема - разработка программного  обеспечения каталога компьютерных игр<br/>
-Рабочее время - 20 часов<br/>
-Итог - рабочий сайт и сервер, отчет по проделанной работе
-
-Чтобы запустить API-сервер или WEB-сервер, перейдите в папку и запустите там deploy.sh
+Итог - рабочий сайт и сервер, отчет по проделанной работе.
 
 ## Стек
 - Общий стек
-	1. JS
+	1. JavaScript
 	2. Node.js
 	3. NPM
 - Стек Бэкенда
 	1. SQLite
+  2. Express
 - Стек Фронтенда
 	1. HTML
 	2. СSS
@@ -37,14 +35,6 @@
 
 # Функционирование
 ## Модели
-- developer Разработчик 
-    - id INTEGER Primary Key, Autoincrement
-    - name TEXT Имя (Уникальное, Обязательное)
-
-- publisher Издатель 
-    - id INTEGER Primary Key, Autoincrement
-    - name TEXT Имя (Уникальное, Обязательное)
-
 - game Игра
     - id INTEGER Primary Key, Autoincrement
     - name TEXT Название (Обязательное)
@@ -71,20 +61,109 @@
     - review_text TEXT Текст отзыва
     - status TEXT Статус ('review', 'approved', 'rejected')
     - created_at DATETIME Время создания 
+
+- developer Разработчик 
+    - id INTEGER Primary Key, Autoincrement
+    - name TEXT Имя (Уникальное, Обязательное)
+
+- publisher Издатель 
+    - id INTEGER Primary Key, Autoincrement
+    - name TEXT Имя (Уникальное, Обязательное)
+
 ## API
-API запросы идут по адресу domain_name/api/запрос
-- Регистрация пользователя POST (Domain/api/auth/register) 
-  - Запрос:
-    - Пароль string
-    - Логин string
-  - Ответ
-    - Токен string
 
-- Авторизация POST (Domain/api/auth/login)
-  - Запрос
-    - Пароль string
-    - Логин string
+API запросы идут по адресу `domain_name/api/` <br>
 
-  - Ответ
-    - Токен string
-!!!Добавить
+**Аутентификация** (`/auth`)
+-   Регистрация пользователя `POST /auth/register`
+    -   Запрос:
+        -   `login` (string)
+        -   `password` (string)
+    -   Ответ:
+        -   `message` (string, e.g., "User registered successfully. Please log in.")
+
+-   Авторизация пользователя `POST /auth/login`
+    -   Запрос:
+        -   `login` (string)
+        -   `password` (string)
+    -   Ответ:
+        -   `token` (string)
+
+**Игры** (`/games`)
+-   Получение списка игр `GET /games`
+    -   Запрос (query параметры, опционально):
+        -   `page`, `limit`, `search`, `year`, `publisher`, `developer`, `genre`, `platform`, `minRating`, `maxRating`, `sortBy`, `sortOrder`
+    -   Ответ:
+        -   `games` (array)
+        -   `totalGames` (number)
+        -   `totalPages` (number)
+        -   `currentPage` (number)
+
+-   Получение детальной информации об игре `GET /games/:id`
+    -   Запрос (path параметр):
+        -   `:id` (number, ID игры)
+    -   Ответ:
+        -   Объект с деталями игры (json)
+
+**Отзывы** (`/reviews`)
+
+-   Отправить отзыв к игре `POST /reviews/game/:gameId` (Требует аутентификации)
+    -   Запрос (path параметр + тело):
+        -   `:gameId` (number, ID игры)
+        -   `rank` (number, 1-10)
+        -   `review_text` (string, опционально)
+    -   Ответ:
+        -   `message` (string)
+        -   `review` (объект нового отзыва)
+
+-   Получить отзывы по игре `GET /reviews/game/:gameId`
+    -   Запрос (path параметр):
+        -   `:gameId` (number, ID игры)
+    -   Ответ:
+        -   Массив объектов отзывов (json array)
+
+-   Получить свой отзыв по игре `GET /reviews/game/:gameId/my` (Требует аутентификации)
+    -   Запрос (path параметр):
+        -   `:gameId` (number, ID игры)
+    -   Ответ:
+        -   Объект своего отзыва (json) или `404`
+
+-   Обновить свой отзыв к игре `PUT /reviews/game/:gameId/my` (Требует аутентификации)
+    -   Запрос (path параметр + тело):
+        -   `:gameId` (number, ID игры)
+        -   `rank` (number, 1-10, опционально)
+        -   `review_text` (string, опционально)
+    -   Ответ:
+        -   `message` (string)
+        -   `review` (объект обновленного отзыва)
+
+-   Получить отзывы на модерацию `GET /reviews/pending` (Требует аутентификации, роль admin)
+    -   Запрос: Нет
+    -   Ответ:
+        -   Массив объектов отзывов (json array)
+
+-   Обновить статус отзыва `PUT /reviews/:reviewId/status` (Требует аутентификации, роль admin)
+    -   Запрос (path параметр + тело):
+        -   `:reviewId` (number, ID отзыва)
+        -   `status` (string: "approved", "rejected", "review")
+    -   Ответ:
+        -   `message` (string)
+
+-   Удалить отзыв `DELETE /reviews/:reviewId` (Требует аутентификации, роль admin)
+    -   Запрос (path параметр):
+        -   `:reviewId` (number, ID отзыва)
+    -   Ответ:
+        -   `message` (string)
+
+**Пользователи** (`/users`)
+-   Получить список всех пользователей `GET /users` (Требует аутентификации, роль admin)
+    -   Запрос: Нет
+    -   Ответ:
+        -   Массив объектов пользователей (json array)
+
+-   Обновить статус пользователя `PUT /users/:userId/status` (Требует аутентификации, роль admin)
+    -   Запрос (path параметр + тело):
+        -   `:userId` (number, ID пользователя)
+        -   `status` (string: "active", "blocked")
+    -   Ответ:
+        -   `message` (string)
